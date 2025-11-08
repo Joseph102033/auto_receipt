@@ -16,8 +16,9 @@ export const createParticipantSchema = z.object({
     .max(50, '이름은 50자 이내로 입력해주세요'),
   email: z
     .string()
-    .min(1, '이메일을 입력해주세요')
-    .email('올바른 이메일 형식이 아닙니다'),
+    .email('올바른 이메일 형식이 아닙니다')
+    .optional()
+    .or(z.literal('')),
   phone: z
     .string()
     .regex(/^[0-9-+()]*$/, '올바른 전화번호 형식이 아닙니다')
@@ -68,7 +69,7 @@ export const updateParticipantSchema = z.object({
 export const bulkImportSchema = z.array(
   z.object({
     name: z.string().min(1, '이름은 필수입니다'),
-    email: z.string().email('올바른 이메일 형식이 아닙니다'),
+    email: z.string().email('올바른 이메일 형식이 아닙니다').optional().or(z.literal('')),
     phone: z.string().optional(),
     department: z.string().optional(),
     position: z.string().optional(),

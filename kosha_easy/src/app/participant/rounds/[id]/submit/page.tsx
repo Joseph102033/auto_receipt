@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, use as usePromise } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, use as usePromise, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ParticipantLayout } from '@/components/layout/participant-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,8 +12,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FileUpload } from '@/components/ui/file-upload';
 import { useRound } from '@/features/rounds/hooks/useRounds';
 import { useCreateSubmission } from '@/features/submissions/hooks/useSubmissions';
-import { Upload, FileText, Loader2 } from 'lucide-react';
+import { Upload, FileText, Loader2, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 interface DocumentSubmission {
   documentName: string;
@@ -25,6 +26,9 @@ interface DocumentSubmission {
 export default function ParticipantSubmitPage(props: { params: Promise<{ id: string }> }) {
   const { id: roundId } = usePromise(props.params);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const participantId = searchParams.get('participantId');
+  const participantName = searchParams.get('participantName');
 
   const { data: round, isLoading: loadingRound } = useRound(roundId);
   const createSubmission = useCreateSubmission();
@@ -37,7 +41,7 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Initialize document submissions when round data is loaded
-  useState(() => {
+  useEffect(() => {
     if (round?.requiredDocuments) {
       const initial: Record<string, DocumentSubmission> = {};
       round.requiredDocuments.forEach((doc) => {
@@ -49,7 +53,7 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
       });
       setDocumentSubmissions(initial);
     }
-  });
+  }, [round]);
 
   const handleFileChange = (documentName: string, file: File) => {
     setDocumentSubmissions((prev) => ({
@@ -87,6 +91,10 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
     e.preventDefault();
 
     if (!round) return;
+    if (!participantId) {
+      alert('참석자 정보가 없습니다. 참석자 명단에서 다시 선택해주세요.');
+      return;
+    }
 
     // Validation
     const allDocumentsHandled = Object.values(documentSubmissions).every(
@@ -111,7 +119,7 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
       const promises = Object.values(documentSubmissions).map((doc) => {
         return createSubmission.mutateAsync({
           roundId,
-          participantId: '', // Will be filled by API from current user
+          participantId, // Use participantId from URL params
           documentName: doc.documentName,
           file: doc.file,
           status: doc.notApplicable ? 'not_applicable' : 'submitted',
@@ -125,9 +133,11 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
 
       await Promise.all(promises);
 
-      router.push('/participant/rounds');
+      alert('문서가 성공적으로 제출되었습니다.');
+      router.push(`/participant/rounds/${roundId}`);
     } catch (error) {
       console.error('Submission failed:', error);
+      alert('문서 제출에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsSubmitting(false);
     }
@@ -156,10 +166,23 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
   return (
     <ParticipantLayout>
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Back Button */}
+        <Link href={`/participant/rounds/${roundId}`}>
+          <Button variant="ghost" size="sm" className="mb-4">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            참석자 명단으로
+          </Button>
+        </Link>
+
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-grayscale-900">{round.title}</h1>
           <p className="text-grayscale-600 mt-1">{round.description}</p>
+          {participantName && (
+            <p className="text-lg font-medium text-primary mt-2">
+              제출자: {participantName}
+            </p>
+          )}
           <p className="text-sm text-grayscale-500 mt-1">
             마감: {format(new Date(round.endDate), 'yyyy-MM-dd')}
           </p>
@@ -319,7 +342,7 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
               type="button"
               variant="outline"
               className="flex-1"
-              onClick={() => router.push('/participant/rounds')}
+              onClick={() => router.push(`/participant/rounds/${roundId}`)}
               disabled={isSubmitting}
             >
               취소
