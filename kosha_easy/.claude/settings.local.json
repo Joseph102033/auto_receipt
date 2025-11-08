@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(supabase --version:*)",
+      "Bash(npm install:*)",
+      "Bash(npx supabase --version)",
+      "Bash(npx supabase:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

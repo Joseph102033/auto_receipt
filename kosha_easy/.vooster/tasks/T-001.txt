@@ -1,0 +1,50 @@
+# Define the design system’s color palette and typography settings
+
+**Task ID:** T-001
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 8/10
+**Urgency:** 10/10
+**Dependencies:** None
+
+## Description
+
+# T-001: Design System – Color Palette & Typography
+
+## Objective
+Define the visual foundation for the Document Submission Management System by specifying a comprehensive color palette and typography scale.
+
+## Requirements
+
+### 1. Color Palette
+- Primary: Light, Base, Dark shades
+- Secondary: Light, Base, Dark shades
+- Accent: Light, Base, Dark shades
+- Grayscale: 50, 100, 200, 300, 400, 500, 600, 700, 800, 900
+
+For each category, propose hex values that ensure accessibility (WCAG AA) and harmonious contrast.
+
+### 2. Typography & Font
+- Font Families:
+  - Sans-serif for body text
+  - Serif or display for headings
+- Font Sizes: xs, sm, base, lg, xl, 2xl, 3xl
+- Font Weights: Light (300), Regular (400), Medium (500), Bold (700)
+
+## Deliverables
+1. Tailwind CSS `theme.extend.colors` configuration including all palette categories.
+2. Tailwind CSS `theme.extend.fontFamily` and `fontSize` definitions.
+3. A TypeScript file (`theme.config.ts`) exporting the complete design tokens.
+
+MUST Guidelines:
+- only implement what is written in prompt.
+- tidy first.
+
+
+
+  
+
+---
+
+**Created:** 2025-11-04T04:13:25.579Z
+**Updated:** 2025-11-06T12:43:16.277Z
