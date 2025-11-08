@@ -1,10 +1,8 @@
 /**
- * Participant API Functions (Stubbed)
- *
- * TODO: Replace these stub implementations with real API calls
- * when backend is ready
+ * Participant API Functions - Supabase Implementation
  */
 
+import { createClient } from '@/lib/supabase/client';
 import {
   Participant,
   CreateParticipantInput,
@@ -14,261 +12,269 @@ import {
   ParticipantStats,
 } from './types';
 
-// Mock data store (simulates a database)
-let mockParticipants: Participant[] = [
-  {
-    id: 'p1',
-    name: '김철수',
-    email: 'kim@example.com',
-    phone: '010-1234-5678',
-    department: '개발팀',
-    position: '팀장',
-    status: 'active',
-    createdAt: new Date('2024-01-15').toISOString(),
-    updatedAt: new Date('2024-01-15').toISOString(),
-  },
-  {
-    id: 'p2',
-    name: '이영희',
-    email: 'lee@example.com',
-    phone: '010-2345-6789',
-    department: '마케팅팀',
-    position: '매니저',
-    status: 'active',
-    createdAt: new Date('2024-01-20').toISOString(),
-    updatedAt: new Date('2024-01-20').toISOString(),
-  },
-  {
-    id: 'p3',
-    name: '박민수',
-    email: 'park@example.com',
-    phone: '010-3456-7890',
-    department: '개발팀',
-    position: '시니어',
-    status: 'active',
-    createdAt: new Date('2024-02-01').toISOString(),
-    updatedAt: new Date('2024-02-01').toISOString(),
-  },
-  {
-    id: 'p4',
-    name: '정수진',
-    email: 'jung@example.com',
-    phone: '010-4567-8901',
-    department: '인사팀',
-    position: '주임',
-    status: 'active',
-    createdAt: new Date('2024-02-10').toISOString(),
-    updatedAt: new Date('2024-02-10').toISOString(),
-  },
-  {
-    id: 'p5',
-    name: '최동욱',
-    email: 'choi@example.com',
-    phone: '010-5678-9012',
-    department: '개발팀',
-    position: '시니어',
-    status: 'inactive',
-    createdAt: new Date('2024-03-01').toISOString(),
-    updatedAt: new Date('2024-03-15').toISOString(),
-  },
-];
-
-/**
- * Simulates network delay
- */
-const delay = (ms: number = 500) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /**
  * GET /api/participants
  * Fetch all participants with optional filtering
- *
- * TODO: Replace with actual API call
- * Example: return fetch(`/api/participants?${params}`).then(res => res.json())
  */
 export async function fetchParticipants(filter?: ParticipantFilter): Promise<Participant[]> {
-  await delay();
+  const supabase = createClient();
 
-  let filtered = [...mockParticipants];
+  let query = supabase
+    .from('profiles')
+    .select('*')
+    .order('created_at', { ascending: false });
 
   // Apply search filter
   if (filter?.search) {
-    const searchLower = filter.search.toLowerCase();
-    filtered = filtered.filter(
-      (p) =>
-        p.name.toLowerCase().includes(searchLower) ||
-        p.email.toLowerCase().includes(searchLower) ||
-        p.department?.toLowerCase().includes(searchLower) ||
-        p.position?.toLowerCase().includes(searchLower)
+    query = query.or(
+      `name.ilike.%${filter.search}%,email.ilike.%${filter.search}%,department.ilike.%${filter.search}%,position.ilike.%${filter.search}%`
     );
   }
 
   // Apply department filter
   if (filter?.department && filter.department !== 'all') {
-    filtered = filtered.filter((p) => p.department === filter.department);
+    query = query.eq('department', filter.department);
   }
 
   // Apply status filter
   if (filter?.status && filter.status !== 'all') {
-    filtered = filtered.filter((p) => p.status === filter.status);
+    query = query.eq('status', filter.status);
   }
 
-  return filtered;
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`참여자 조회 실패: ${error.message}`);
+  }
+
+  return (data || []).map((item: any) => ({
+    id: item.id,
+    name: item.name,
+    email: item.email,
+    phone: item.phone,
+    department: item.department,
+    position: item.position,
+    status: item.status || 'active',
+    createdAt: item.created_at,
+    updatedAt: item.updated_at,
+  }));
 }
 
 /**
  * GET /api/participants/:id
  * Fetch a single participant by ID
- *
- * TODO: Replace with actual API call
- * Example: return fetch(`/api/participants/${id}`).then(res => res.json())
  */
 export async function fetchParticipant(id: string): Promise<Participant | null> {
-  await delay();
+  const supabase = createClient();
 
-  const participant = mockParticipants.find((p) => p.id === id);
-  return participant || null;
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    return null;
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    department: data.department,
+    position: data.position,
+    status: data.status || 'active',
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
 }
 
 /**
  * GET /api/participants/stats
  * Fetch participant statistics
- *
- * TODO: Replace with actual API call
  */
 export async function fetchParticipantStats(): Promise<ParticipantStats> {
-  await delay(300);
+  const supabase = createClient();
+
+  const { data: profiles, error } = await supabase
+    .from('profiles')
+    .select('status');
+
+  if (error) {
+    throw new Error(`통계 조회 실패: ${error.message}`);
+  }
+
+  const total = profiles?.length || 0;
+  const active = profiles?.filter((p) => p.status === 'active').length || 0;
+  const inactive = profiles?.filter((p) => p.status === 'inactive').length || 0;
 
   return {
-    total: mockParticipants.length,
-    active: mockParticipants.filter((p) => p.status === 'active').length,
-    inactive: mockParticipants.filter((p) => p.status === 'inactive').length,
+    total,
+    active,
+    inactive,
   };
 }
 
 /**
  * POST /api/participants
  * Create a new participant
- *
- * TODO: Replace with actual API call
- * Example: return fetch('/api/participants', {
- *   method: 'POST',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify(input)
- * }).then(res => res.json())
  */
 export async function createParticipant(input: CreateParticipantInput): Promise<Participant> {
-  await delay();
+  const supabase = createClient();
 
   // Check for duplicate email
-  if (mockParticipants.some((p) => p.email === input.email)) {
+  const { data: existing } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('email', input.email)
+    .single();
+
+  if (existing) {
     throw new Error('이미 등록된 이메일입니다');
   }
 
-  const newParticipant: Participant = {
-    id: `p${mockParticipants.length + 1}`,
-    ...input,
-    status: 'active',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-  };
+  // Create user in Supabase Auth
+  const { data: authData, error: authError } = await supabase.auth.signUp({
+    email: input.email,
+    password: Math.random().toString(36).slice(-8) + 'Aa1!', // Random temporary password
+    options: {
+      data: {
+        name: input.name,
+        phone: input.phone,
+        department: input.department,
+        position: input.position,
+      },
+    },
+  });
 
-  mockParticipants.push(newParticipant);
-  return newParticipant;
+  if (authError) {
+    throw new Error(`사용자 생성 실패: ${authError.message}`);
+  }
+
+  if (!authData.user) {
+    throw new Error('사용자 생성 실패');
+  }
+
+  // Update profile with additional info
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .update({
+      name: input.name,
+      phone: input.phone,
+      department: input.department,
+      position: input.position,
+      status: 'active',
+    })
+    .eq('id', authData.user.id)
+    .select()
+    .single();
+
+  if (profileError || !profile) {
+    throw new Error(`프로필 업데이트 실패: ${profileError?.message}`);
+  }
+
+  return {
+    id: profile.id,
+    name: profile.name,
+    email: profile.email,
+    phone: profile.phone,
+    department: profile.department,
+    position: profile.position,
+    status: profile.status || 'active',
+    createdAt: profile.created_at,
+    updatedAt: profile.updated_at,
+  };
 }
 
 /**
  * PUT /api/participants/:id
  * Update an existing participant
- *
- * TODO: Replace with actual API call
- * Example: return fetch(`/api/participants/${input.id}`, {
- *   method: 'PUT',
- *   headers: { 'Content-Type': 'application/json' },
- *   body: JSON.stringify(input)
- * }).then(res => res.json())
  */
 export async function updateParticipant(input: UpdateParticipantInput): Promise<Participant> {
-  await delay();
-
-  const index = mockParticipants.findIndex((p) => p.id === input.id);
-
-  if (index === -1) {
-    throw new Error('참여자를 찾을 수 없습니다');
-  }
+  const supabase = createClient();
 
   // Check for duplicate email (excluding current participant)
-  if (
-    input.email &&
-    mockParticipants.some((p) => p.id !== input.id && p.email === input.email)
-  ) {
-    throw new Error('이미 등록된 이메일입니다');
+  if (input.email) {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', input.email)
+      .neq('id', input.id)
+      .single();
+
+    if (existing) {
+      throw new Error('이미 등록된 이메일입니다');
+    }
   }
 
-  const updatedParticipant: Participant = {
-    ...mockParticipants[index],
-    ...input,
-    updatedAt: new Date().toISOString(),
-  };
+  const updateData: any = {};
+  if (input.name) updateData.name = input.name;
+  if (input.email) updateData.email = input.email;
+  if (input.phone) updateData.phone = input.phone;
+  if (input.department) updateData.department = input.department;
+  if (input.position) updateData.position = input.position;
+  if (input.status) updateData.status = input.status;
 
-  mockParticipants[index] = updatedParticipant;
-  return updatedParticipant;
+  const { data, error } = await supabase
+    .from('profiles')
+    .update(updateData)
+    .eq('id', input.id)
+    .select()
+    .single();
+
+  if (error || !data) {
+    throw new Error(`참여자 업데이트 실패: ${error?.message}`);
+  }
+
+  return {
+    id: data.id,
+    name: data.name,
+    email: data.email,
+    phone: data.phone,
+    department: data.department,
+    position: data.position,
+    status: data.status || 'active',
+    createdAt: data.created_at,
+    updatedAt: data.updated_at,
+  };
 }
 
 /**
  * DELETE /api/participants/:id
  * Delete a participant
- *
- * TODO: Replace with actual API call
- * Example: return fetch(`/api/participants/${id}`, { method: 'DELETE' })
  */
 export async function deleteParticipant(id: string): Promise<void> {
-  await delay();
+  const supabase = createClient();
 
-  const index = mockParticipants.findIndex((p) => p.id === id);
+  // Set status to inactive instead of actually deleting
+  const { error } = await supabase
+    .from('profiles')
+    .update({ status: 'inactive' })
+    .eq('id', id);
 
-  if (index === -1) {
-    throw new Error('참여자를 찾을 수 없습니다');
+  if (error) {
+    throw new Error(`참여자 삭제 실패: ${error.message}`);
   }
-
-  mockParticipants.splice(index, 1);
 }
 
 /**
  * POST /api/participants/bulk
  * Bulk import participants
- *
- * TODO: Replace with actual API call
  */
 export async function bulkImportParticipants(
   participants: BulkImportParticipant[]
 ): Promise<{ success: number; failed: number; errors: string[] }> {
-  await delay(1000);
-
   let success = 0;
   let failed = 0;
   const errors: string[] = [];
 
   for (const participant of participants) {
     try {
-      // Check for duplicate email
-      if (mockParticipants.some((p) => p.email === participant.email)) {
-        errors.push(`${participant.email}: 이미 등록된 이메일입니다`);
-        failed++;
-        continue;
-      }
-
-      const newParticipant: Participant = {
-        id: `p${mockParticipants.length + 1}`,
-        ...participant,
-        status: 'active',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-
-      mockParticipants.push(newParticipant);
+      await createParticipant(participant);
       success++;
-    } catch (error) {
-      errors.push(`${participant.email}: 등록 실패`);
+    } catch (error: any) {
+      errors.push(`${participant.email}: ${error.message}`);
       failed++;
     }
   }
@@ -279,15 +285,22 @@ export async function bulkImportParticipants(
 /**
  * GET /api/participants/departments
  * Fetch unique departments
- *
- * TODO: Replace with actual API call
  */
 export async function fetchDepartments(): Promise<string[]> {
-  await delay(300);
+  const supabase = createClient();
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('department')
+    .not('department', 'is', null);
+
+  if (error) {
+    throw new Error(`부서 목록 조회 실패: ${error.message}`);
+  }
 
   const departments = Array.from(
-    new Set(mockParticipants.map((p) => p.department).filter((d) => d))
+    new Set(data?.map((p) => p.department).filter((d) => d))
   ) as string[];
 
-  return departments;
+  return departments.sort();
 }

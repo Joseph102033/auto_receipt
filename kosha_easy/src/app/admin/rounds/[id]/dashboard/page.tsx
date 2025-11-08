@@ -127,7 +127,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
     return (
       <AdminLayout>
         <div className="py-12 text-center">
-          <p className="text-grayscale-600">대시보드를 불러오는 중...</p>
+          <p className="text-muted-foreground">대시보드를 불러오는 중...</p>
         </div>
       </AdminLayout>
     );
@@ -148,9 +148,9 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold text-grayscale-900">{round.title}</h1>
-          <p className="text-grayscale-600 mt-1">{round.description}</p>
-          <p className="text-sm text-grayscale-500 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">{round.title}</h1>
+          <p className="text-muted-foreground mt-1">{round.description}</p>
+          <p className="text-sm text-muted-foreground mt-1">
             마감: {format(new Date(round.endDate), 'yyyy-MM-dd')}
           </p>
         </div>
@@ -160,7 +160,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">전체 참여자</CardTitle>
-              <Clock className="h-4 w-4 text-grayscale-600" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stats.total}</div>
@@ -221,24 +221,24 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
           <CardContent>
             {participantsList.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-grayscale-600">참여자가 없습니다</p>
+                <p className="text-muted-foreground">참여자가 없습니다</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="border-b border-grayscale-200">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-grayscale-700">참여자 ID</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-grayscale-700">상태</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-grayscale-700">제출일</th>
+                    <tr className="border-b">
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">참여자 ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">상태</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">제출일</th>
                     </tr>
                   </thead>
                   <tbody>
                     {participantsList.map((participant) => (
-                      <tr key={participant.id} className="border-b border-grayscale-100">
+                      <tr key={participant.id} className="border-b hover:bg-muted/50">
                         <td className="py-3 px-4 text-sm font-medium">{participant.id}</td>
                         <td className="py-3 px-4 text-sm">{getStatusBadge(participant.status)}</td>
-                        <td className="py-3 px-4 text-sm text-grayscale-600">{participant.submittedAt || '-'}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{participant.submittedAt || '-'}</td>
                       </tr>
                     ))}
                   </tbody>

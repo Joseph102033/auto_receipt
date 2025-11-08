@@ -46,10 +46,10 @@ export const createRoundSchema = z.object({
   (data) => {
     const start = new Date(data.startDate);
     const end = new Date(data.endDate);
-    return end > start;
+    return end >= start;
   },
   {
-    message: '종료일은 시작일보다 늦어야 합니다',
+    message: '종료일은 시작일과 같거나 늦어야 합니다',
     path: ['endDate'],
   }
 );
@@ -102,12 +102,12 @@ export const updateRoundSchema = z.object({
     if (data.startDate && data.endDate) {
       const start = new Date(data.startDate);
       const end = new Date(data.endDate);
-      return end > start;
+      return end >= start;
     }
     return true;
   },
   {
-    message: '종료일은 시작일보다 늦어야 합니다',
+    message: '종료일은 시작일과 같거나 늦어야 합니다',
     path: ['endDate'],
   }
 );

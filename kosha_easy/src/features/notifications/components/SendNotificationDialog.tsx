@@ -250,7 +250,7 @@ export function SendNotificationDialog({
                 </Button>
               </div>
 
-              <div className="border border-grayscale-200 rounded-lg p-3 max-h-[200px] overflow-y-auto space-y-2">
+              <div className="border rounded-lg p-3 max-h-[200px] overflow-y-auto space-y-2">
                 {participants.map((participant) => (
                   <div key={participant.id} className="flex items-center gap-2">
                     <Checkbox
@@ -259,9 +259,9 @@ export function SendNotificationDialog({
                     />
                     <label className="flex-1 text-sm cursor-pointer" onClick={() => toggleParticipant(participant.id)}>
                       <span className="font-medium">{participant.name}</span>
-                      <span className="text-grayscale-600 ml-2">({participant.email})</span>
+                      <span className="text-muted-foreground ml-2">({participant.email})</span>
                       {participant.department && (
-                        <span className="text-grayscale-500 ml-2">- {participant.department}</span>
+                        <span className="text-muted-foreground ml-2">- {participant.department}</span>
                       )}
                     </label>
                   </div>

@@ -15,14 +15,21 @@ import {
 import { Plus } from 'lucide-react';
 import { RoundList } from '@/features/rounds/components/RoundList';
 import { RoundForm } from '@/features/rounds/components/RoundForm';
-import { useRounds, useCreateRound, useDeleteRound } from '@/features/rounds/hooks/useRounds';
+import { SendNotificationDialog } from '@/features/notifications/components/SendNotificationDialog';
+import { useRounds, useCreateRound, useDeleteRound, useParticipants } from '@/features/rounds/hooks/useRounds';
 import { CreateRoundFormData } from '@/features/rounds/schema';
 
 export default function AdminRoundsPage() {
   const router = useRouter();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [notificationDialog, setNotificationDialog] = useState<{
+    open: boolean;
+    roundId?: string;
+    roundTitle?: string;
+  }>({ open: false });
 
   const { data: rounds = [], isLoading, error } = useRounds();
+  const { data: participants = [] } = useParticipants();
   const createMutation = useCreateRound();
   const deleteMutation = useDeleteRound();
 
@@ -51,14 +58,18 @@ export default function AdminRoundsPage() {
     }
   };
 
+  const handleSendNotification = (roundId: string, roundTitle: string) => {
+    setNotificationDialog({ open: true, roundId, roundTitle });
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-grayscale-900">차수 관리</h1>
-            <p className="text-grayscale-600 mt-1">문서 제출 차수를 관리하고 현황을 확인하세요</p>
+            <h1 className="text-3xl font-bold text-foreground">차수 관리</h1>
+            <p className="text-muted-foreground mt-1">문서 제출 차수를 관리하고 현황을 확인하세요</p>
           </div>
 
           {/* Create Round Dialog */}
@@ -82,7 +93,7 @@ export default function AdminRoundsPage() {
         {/* Loading State */}
         {isLoading && (
           <div className="text-center py-8">
-            <p className="text-grayscale-600">차수 목록을 불러오는 중...</p>
+            <p className="text-muted-foreground">차수 목록을 불러오는 중...</p>
           </div>
         )}
 
@@ -98,7 +109,19 @@ export default function AdminRoundsPage() {
           <RoundList
             rounds={rounds}
             onDelete={handleDelete}
+            onSendNotification={handleSendNotification}
             isDeletingId={deleteMutation.isPending ? (deleteMutation as any).variables : undefined}
+          />
+        )}
+
+        {/* Send Notification Dialog */}
+        {notificationDialog.roundId && (
+          <SendNotificationDialog
+            open={notificationDialog.open}
+            onOpenChange={(open) => setNotificationDialog({ ...notificationDialog, open })}
+            participants={participants}
+            roundId={notificationDialog.roundId}
+            roundTitle={notificationDialog.roundTitle}
           />
         )}
       </div>

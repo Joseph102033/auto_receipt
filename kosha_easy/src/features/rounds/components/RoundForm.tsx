@@ -153,7 +153,7 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
         </CardHeader>
         <CardContent>
           {isLoadingParticipants ? (
-            <p className="text-sm text-grayscale-500">참여자 목록을 불러오는 중...</p>
+            <p className="text-sm text-muted-foreground">참여자 목록을 불러오는 중...</p>
           ) : (
             <div className="space-y-2">
               {participants.map((participant) => (
@@ -211,9 +211,9 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
               {requiredDocuments.map((doc, index) => (
                 <div
                   key={index}
-                  className="flex items-center justify-between p-2 bg-grayscale-50 rounded-md"
+                  className="flex items-center justify-between p-2 bg-muted rounded-md"
                 >
-                  <span className="text-sm">{doc}</span>
+                  <span className="text-sm text-foreground">{doc}</span>
                   <Button
                     type="button"
                     variant="ghost"
@@ -226,7 +226,7 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
               ))}
             </div>
           ) : (
-            <p className="text-sm text-grayscale-500">추가된 문서가 없습니다</p>
+            <p className="text-sm text-muted-foreground">추가된 문서가 없습니다</p>
           )}
 
           {errors.requiredDocuments && (

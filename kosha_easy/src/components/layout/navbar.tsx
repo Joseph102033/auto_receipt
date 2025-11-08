@@ -44,7 +44,7 @@ export function Navbar({ userEmail: propUserEmail, userId: propUserId }: NavbarP
   };
 
   return (
-    <nav className="bg-white border-b border-grayscale-200 sticky top-0 z-50">
+    <nav className="bg-background border-b sticky top-0 z-50">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           {/* Logo */}
@@ -65,7 +65,7 @@ export function Navbar({ userEmail: propUserEmail, userId: propUserId }: NavbarP
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <div className="px-2 py-1.5 text-sm text-grayscale-700">
+                <div className="px-2 py-1.5 text-sm text-foreground">
                   {userEmail || '사용자'}
                 </div>
                 <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>

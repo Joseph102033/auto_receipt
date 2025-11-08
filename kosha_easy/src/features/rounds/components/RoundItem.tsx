@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Bell } from 'lucide-react';
 import { RoundWithStats } from '../types';
 import {
   AlertDialog,
@@ -19,29 +19,30 @@ import {
 interface RoundItemProps {
   round: RoundWithStats;
   onDelete: (id: string) => void;
+  onSendNotification: (roundId: string, roundTitle: string) => void;
   isDeleting?: boolean;
 }
 
-export function RoundItem({ round, onDelete, isDeleting = false }: RoundItemProps) {
+export function RoundItem({ round, onDelete, onSendNotification, isDeleting = false }: RoundItemProps) {
   return (
-    <tr className="border-b border-grayscale-100 hover:bg-grayscale-50">
+    <tr className="border-b hover:bg-muted/50">
       <td className="py-3 px-4">
         <div>
-          <p className="text-sm font-medium text-grayscale-900">{round.title}</p>
-          <p className="text-xs text-grayscale-500 mt-1">{round.description}</p>
+          <p className="text-sm font-medium text-foreground">{round.title}</p>
+          <p className="text-xs text-muted-foreground mt-1">{round.description}</p>
         </div>
       </td>
       <td className="py-3 px-4 text-sm">
         <div className="space-y-1">
           <p>{round.startDate}</p>
-          <p className="text-grayscale-500">~</p>
+          <p className="text-muted-foreground">~</p>
           <p>{round.endDate}</p>
         </div>
       </td>
       <td className="py-3 px-4 text-sm">
         <div className="flex items-center gap-2">
           <span className="text-primary font-medium">{round.submittedCount}</span>
-          <span className="text-grayscale-500">/ {round.participantCount}</span>
+          <span className="text-muted-foreground">/ {round.participantCount}</span>
         </div>
       </td>
       <td className="py-3 px-4">
@@ -51,6 +52,13 @@ export function RoundItem({ round, onDelete, isDeleting = false }: RoundItemProp
               상세보기
             </Button>
           </Link>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => onSendNotification(round.id, round.title)}
+          >
+            <Bell className="h-4 w-4" />
+          </Button>
           <Link href={`/admin/rounds/${round.id}/edit`}>
             <Button variant="outline" size="sm">
               <Edit className="h-4 w-4" />

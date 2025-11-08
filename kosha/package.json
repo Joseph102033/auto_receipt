@@ -1,0 +1,20 @@
+{
+  "name": "kosha-root",
+  "version": "1.0.0",
+  "description": "Safe OPS Studio - Root workspace",
+  "private": true,
+  "scripts": {
+    "etl:laws": "tsx scripts/etl-laws.ts",
+    "curate:rules": "tsx scripts/curate-rules.ts",
+    "sync:laws": "tsx scripts/diff-sync.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "tsx": "^4.7.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "xml2js": "^0.6.2"
+  }
+}
