@@ -8,7 +8,7 @@ interface ParticipantLayoutProps {
 
 export function ParticipantLayout({ children }: ParticipantLayoutProps) {
   return (
-    <div className="min-h-screen bg-grayscale-50">
+    <div className="min-h-screen bg-black">
       <Navbar userEmail="participant@example.com" />
       <main className="mt-16">
         <div className="py-6">

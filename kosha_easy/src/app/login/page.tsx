@@ -70,16 +70,16 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-grayscale-100 px-4">
-      <Card className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center bg-black px-4">
+      <Card className="w-full max-w-md bg-gray-900 border-gray-800">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">문서 제출 관리 시스템</CardTitle>
-          <CardDescription className="text-center">이메일과 비밀번호로 로그인하세요</CardDescription>
+          <CardTitle className="text-2xl font-bold text-center text-white">문서 제출 관리 시스템</CardTitle>
+          <CardDescription className="text-center text-gray-400">이메일과 비밀번호로 로그인하세요</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">이메일</Label>
+              <Label htmlFor="email" className="text-gray-300">이메일</Label>
               <Input
                 id="email"
                 type="email"
@@ -88,10 +88,11 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 disabled={isLoading}
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">비밀번호</Label>
+              <Label htmlFor="password" className="text-gray-300">비밀번호</Label>
               <Input
                 id="password"
                 type="password"
@@ -100,12 +101,13 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 disabled={isLoading}
+                className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
               />
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? '로그인 중...' : '로그인'}
             </Button>
-            <div className="text-xs text-grayscale-500 text-center space-y-1">
+            <div className="text-xs text-gray-500 text-center space-y-1">
               <p>※ Supabase에 계정을 먼저 생성해주세요</p>
             </div>
           </form>

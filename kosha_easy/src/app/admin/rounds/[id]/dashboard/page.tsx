@@ -13,6 +13,7 @@ import { DetailedReport } from '@/features/dashboard/components/DetailedReport';
 import { SendNotificationDialog } from '@/features/notifications/components/SendNotificationDialog';
 import { useRound } from '@/features/rounds/hooks/useRounds';
 import { useSubmissionsByRound } from '@/features/submissions/hooks/useSubmissions';
+import { useParticipants } from '@/features/participants/hooks/useParticipants';
 import { format } from 'date-fns';
 
 export default function AdminRoundDashboardPage(props: { params: Promise<{ id: string }> }) {
@@ -21,6 +22,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
 
   const { data: round, isLoading: loadingRound } = useRound(roundId);
   const { data: submissions = [], isLoading: loadingSubmissions } = useSubmissionsByRound(roundId);
+  const { data: participants = [], isLoading: loadingParticipants } = useParticipants();
 
   // Calculate statistics
   const stats = useMemo(() => {
@@ -74,7 +76,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
 
   // Participant list with submission status
   const participantsList = useMemo(() => {
-    if (!round || !submissions) return [];
+    if (!round || !submissions || !participants) return [];
 
     const submissionsByParticipant = submissions.reduce((acc, sub) => {
       if (!acc[sub.participantId]) {
@@ -84,7 +86,13 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
       return acc;
     }, {} as Record<string, typeof submissions>);
 
+    const participantMap = participants.reduce((acc, participant) => {
+      acc[participant.id] = participant;
+      return acc;
+    }, {} as Record<string, typeof participants[0]>);
+
     return (round.participants || []).map((participantId) => {
+      const participant = participantMap[participantId];
       const participantSubmissions = submissionsByParticipant[participantId] || [];
       const hasSubmitted = participantSubmissions.length > 0;
       const allNotApplicable = participantSubmissions.every((s) => s.status === 'not_applicable');
@@ -95,17 +103,17 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
 
       return {
         id: participantId,
-        name: participantId, // Would need to fetch participant name
-        email: '', // Would need to fetch participant email
-        department: '',
-        position: '',
+        name: participant?.name || participantId,
+        email: participant?.email || '',
+        department: participant?.department || '',
+        position: participant?.position || '',
         status: hasSubmitted ? (allNotApplicable ? 'not_applicable' : 'submitted') : 'not_submitted',
         submittedAt: latestSubmission?.submittedAt
           ? format(new Date(latestSubmission.submittedAt), 'yyyy-MM-dd')
           : undefined,
       };
     });
-  }, [round, submissions]);
+  }, [round, submissions, participants]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -123,7 +131,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
   // Get only not-submitted participants for notification
   const notSubmittedParticipants = participantsList.filter((p) => p.status === 'not_submitted');
 
-  if (loadingRound || loadingSubmissions) {
+  if (loadingRound || loadingSubmissions || loadingParticipants) {
     return (
       <AdminLayout>
         <div className="py-12 text-center">
@@ -228,7 +236,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">참여자 ID</th>
+                      <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">이름</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">상태</th>
                       <th className="text-left py-3 px-4 text-sm font-medium text-muted-foreground">제출일</th>
                     </tr>
@@ -236,7 +244,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
                   <tbody>
                     {participantsList.map((participant) => (
                       <tr key={participant.id} className="border-b hover:bg-muted/50">
-                        <td className="py-3 px-4 text-sm font-medium">{participant.id}</td>
+                        <td className="py-3 px-4 text-sm font-medium">{participant.name}</td>
                         <td className="py-3 px-4 text-sm">{getStatusBadge(participant.status)}</td>
                         <td className="py-3 px-4 text-sm text-muted-foreground">{participant.submittedAt || '-'}</td>
                       </tr>

@@ -9,7 +9,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   return (
-    <div className="min-h-screen bg-grayscale-50">
+    <div className="min-h-screen bg-black">
       <Navbar userEmail="admin@example.com" />
       <Sidebar />
       <div className="md:pl-64 flex flex-col flex-1">
