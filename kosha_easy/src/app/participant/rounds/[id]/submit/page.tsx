@@ -157,7 +157,7 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
           participantId,
           documentName: doc.documentName,
           file: doc.file,
-          status: isNotApplicable ? 'not_applicable' : 'submitted',
+          status: (isNotApplicable ? 'not_applicable' : 'submitted') as 'submitted' | 'not_applicable',
           notApplicableReason: doc.notApplicableReason,
           amountTransport: parsedTransport,
           amountAccommodation: parsedAccommodation,

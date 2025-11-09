@@ -43,7 +43,6 @@ export async function uploadFile(file: File, roundId: string, participantId: str
   if (error) {
     console.error('Upload error details:', {
       message: error.message,
-      statusCode: error.statusCode,
       error: error,
     });
     throw new Error(`파일 업로드 실패: ${error.message}`);
