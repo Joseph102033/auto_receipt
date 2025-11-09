@@ -31,7 +31,9 @@
     "clsx": "^2.1.1",
     "date-fns": "^4",
     "es-toolkit": "^1",
+    "file-saver": "^2.0.5",
     "framer-motion": "^11",
+    "jszip": "^3.10.1",
     "lucide-react": "^0.469.0",
     "next": "15.1.0",
     "next-themes": "^0.4.3",
@@ -50,6 +52,7 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3",
     "@tailwindcss/typography": "^0.5.10",
+    "@types/file-saver": "^2.0.7",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

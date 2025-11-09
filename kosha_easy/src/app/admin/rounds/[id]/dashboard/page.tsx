@@ -15,11 +15,13 @@ import { useRound } from '@/features/rounds/hooks/useRounds';
 import { useSubmissionsByRound } from '@/features/submissions/hooks/useSubmissions';
 import { useParticipants } from '@/features/participants/hooks/useParticipants';
 import { exportReceiptSummaryToExcel } from '@/features/dashboard/utils/exportToExcel';
+import { downloadReceiptsAsZip } from '@/features/dashboard/utils/downloadReceipts';
 import { format } from 'date-fns';
 
 export default function AdminRoundDashboardPage(props: { params: Promise<{ id: string }> }) {
   const { id: roundId } = usePromise(props.params);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
+  const [isDownloadingReceipts, setIsDownloadingReceipts] = useState(false);
 
   const { data: round, isLoading: loadingRound } = useRound(roundId);
   const { data: submissions = [], isLoading: loadingSubmissions } = useSubmissionsByRound(roundId);
@@ -171,6 +173,21 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
     });
   };
 
+  const handleDownloadReceipts = async () => {
+    if (!round) return;
+
+    setIsDownloadingReceipts(true);
+    try {
+      await downloadReceiptsAsZip(submissions, round.title);
+      alert('영수증 다운로드가 완료되었습니다.');
+    } catch (error) {
+      console.error('Download error:', error);
+      alert(error instanceof Error ? error.message : '영수증 다운로드에 실패했습니다.');
+    } finally {
+      setIsDownloadingReceipts(false);
+    }
+  };
+
   if (loadingRound || loadingSubmissions || loadingParticipants) {
     return (
       <AdminLayout>
@@ -259,14 +276,24 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
           <CardHeader>
             <CardTitle>영수증 취합</CardTitle>
             <CardDescription>
-              참가자별 운임 및 숙박비를 예산 코드와 함께 엑셀로 다운로드합니다
+              참가자별 운임 및 숙박비를 예산 코드와 함께 엑셀로 다운로드하거나, 모든 영수증 파일을 ZIP으로 다운로드합니다
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button onClick={handleExportReceipts} variant="outline">
-              <FileSpreadsheet className="mr-2 h-4 w-4" />
-              영수증 취합 내역 다운로드
-            </Button>
+            <div className="flex gap-3">
+              <Button onClick={handleExportReceipts} variant="outline">
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                영수증 취합 내역 다운로드
+              </Button>
+              <Button
+                onClick={handleDownloadReceipts}
+                variant="default"
+                disabled={isDownloadingReceipts}
+              >
+                <FileSpreadsheet className="mr-2 h-4 w-4" />
+                {isDownloadingReceipts ? '다운로드 중...' : '영수증 파일 일괄 다운로드'}
+              </Button>
+            </div>
             {(!round.budgetCodeTransport && !round.budgetCodeAccommodation) && (
               <p className="text-sm text-muted-foreground mt-2">
                 * 예산 코드가 설정되지 않았습니다. 차수 수정에서 예산 코드를 입력하세요.
