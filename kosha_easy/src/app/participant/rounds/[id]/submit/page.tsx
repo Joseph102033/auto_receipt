@@ -106,8 +106,13 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
       return;
     }
 
-    // Validate amounts
-    if (!amountTransport || !amountAccommodation) {
+    // Check if any documents are actually submitted (not all are "not applicable")
+    const hasSubmittedDocuments = Object.values(documentSubmissions).some(
+      (doc) => !doc.notApplicable
+    );
+
+    // Validate amounts only if there are submitted documents
+    if (hasSubmittedDocuments && (!amountTransport || !amountAccommodation)) {
       alert('운임과 숙박비는 필수 입력 항목입니다.');
       return;
     }
@@ -115,20 +120,47 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
     setIsSubmitting(true);
 
     try {
+      // Parse amounts once - safely handle empty strings
+      const parsedTransport = parseInt(amountTransport) || 0;
+      const parsedAccommodation = parseInt(amountAccommodation) || 0;
+      const parsedEtc = parseInt(amountEtc) || 0;
+
+      console.log('Parsed amounts:', {
+        transport: parsedTransport,
+        accommodation: parsedAccommodation,
+        etc: parsedEtc,
+      });
+
       // Submit each document
       const promises = Object.values(documentSubmissions).map((doc) => {
-        return createSubmission.mutateAsync({
+        const isNotApplicable = doc.notApplicable;
+
+        console.log('Submitting document:', {
+          documentName: doc.documentName,
+          isNotApplicable,
+          amountTransport: parsedTransport,
+          amountAccommodation: parsedAccommodation,
+          amountEtc: parsedEtc,
+          status: isNotApplicable ? 'not_applicable' : 'submitted',
+        });
+
+        const submissionData = {
           roundId,
           participantId, // Use participantId from URL params
           documentName: doc.documentName,
           file: doc.file,
-          status: doc.notApplicable ? 'not_applicable' : 'submitted',
+          status: isNotApplicable ? 'not_applicable' : 'submitted',
           notApplicableReason: doc.notApplicableReason,
-          amountTransport: parseInt(amountTransport),
-          amountAccommodation: parseInt(amountAccommodation),
-          amountEtc: parseInt(amountEtc),
-          amountNote,
-        });
+          // Always include amounts (required by database)
+          amountTransport: parsedTransport,
+          amountAccommodation: parsedAccommodation,
+          amountEtc: parsedEtc,
+          amountNote: amountNote || '',
+        };
+
+        console.log('Final submission data:', submissionData);
+
+        return createSubmission.mutateAsync(submissionData);
       });
 
       await Promise.all(promises);

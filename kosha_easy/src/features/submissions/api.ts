@@ -20,10 +20,18 @@ import type {
 export async function uploadFile(file: File, roundId: string, participantId: string): Promise<string> {
   const supabase = createClient();
 
+  // Check authentication
+  const { data: { user } } = await supabase.auth.getUser();
+  console.log('Upload - Current user:', user?.id);
+  console.log('Upload - Participant ID:', participantId);
+
   // Generate unique file name
   const timestamp = Date.now();
   const fileExt = file.name.split('.').pop();
   const fileName = `${roundId}/${participantId}/${timestamp}.${fileExt}`;
+
+  console.log('Upload - Attempting to upload:', fileName);
+  console.log('Upload - File size:', file.size, 'bytes');
 
   const { data, error } = await supabase.storage
     .from('documents')
@@ -33,8 +41,15 @@ export async function uploadFile(file: File, roundId: string, participantId: str
     });
 
   if (error) {
+    console.error('Upload error details:', {
+      message: error.message,
+      statusCode: error.statusCode,
+      error: error,
+    });
     throw new Error(`파일 업로드 실패: ${error.message}`);
   }
+
+  console.log('Upload successful:', data.path);
 
   // Get public URL
   const { data: urlData } = supabase.storage
@@ -108,9 +123,9 @@ export async function createSubmission(
       file_type: fileType,
       status: request.status,
       not_applicable_reason: request.notApplicableReason || null,
-      amount_transport: request.amountTransport || null,
-      amount_accommodation: request.amountAccommodation || null,
-      amount_etc: request.amountEtc || 0,
+      amount_transport: request.amountTransport ?? null,
+      amount_accommodation: request.amountAccommodation ?? null,
+      amount_etc: request.amountEtc ?? 0,
       amount_note: request.amountNote || null,
       submitted_at: request.status === 'submitted' ? new Date().toISOString() : null,
     })
