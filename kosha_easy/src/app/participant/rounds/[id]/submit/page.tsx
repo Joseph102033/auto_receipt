@@ -135,6 +135,14 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
       const promises = Object.values(documentSubmissions).map((doc) => {
         const isNotApplicable = doc.notApplicable;
 
+        console.log('DEBUG - doc object:', doc);
+        console.log('DEBUG - documentName:', doc.documentName);
+
+        if (!doc.documentName) {
+          console.error('ERROR: documentName is missing!', doc);
+          throw new Error('문서명이 누락되었습니다. 페이지를 새로고침 후 다시 시도해주세요.');
+        }
+
         console.log('Submitting document:', {
           documentName: doc.documentName,
           isNotApplicable,
@@ -146,12 +154,11 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
 
         const submissionData = {
           roundId,
-          participantId, // Use participantId from URL params
+          participantId,
           documentName: doc.documentName,
           file: doc.file,
           status: isNotApplicable ? 'not_applicable' : 'submitted',
           notApplicableReason: doc.notApplicableReason,
-          // Always include amounts (required by database)
           amountTransport: parsedTransport,
           amountAccommodation: parsedAccommodation,
           amountEtc: parsedEtc,
