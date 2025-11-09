@@ -18,9 +18,10 @@ interface RoundFormProps {
   initialData?: Round;
   onSubmit: (data: CreateRoundFormData) => void;
   isLoading?: boolean;
+  isAdmin?: boolean;
 }
 
-export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFormProps) {
+export function RoundForm({ initialData, onSubmit, isLoading = false, isAdmin = false }: RoundFormProps) {
   const { data: participants = [], isLoading: isLoadingParticipants } = useParticipants();
   const [requiredDocuments, setRequiredDocuments] = useState<string[]>(
     initialData?.requiredDocuments || []
@@ -41,6 +42,8 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
           description: initialData.description,
           startDate: initialData.startDate,
           endDate: initialData.endDate,
+          budgetCodeTransport: initialData.budgetCodeTransport || '',
+          budgetCodeAccommodation: initialData.budgetCodeAccommodation || '',
           participants: initialData.participants,
           requiredDocuments: initialData.requiredDocuments,
         }
@@ -49,6 +52,8 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
           description: '',
           startDate: '',
           endDate: '',
+          budgetCodeTransport: '',
+          budgetCodeAccommodation: '',
           participants: [],
           requiredDocuments: [],
         },
@@ -142,6 +147,40 @@ export function RoundForm({ initialData, onSubmit, isLoading = false }: RoundFor
               )}
             </div>
           </div>
+
+          {/* Budget Codes (Admin Only) */}
+          {isAdmin && (
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="budgetCodeTransport">운임 예산 코드</Label>
+                  <Input
+                    id="budgetCodeTransport"
+                    {...register('budgetCodeTransport')}
+                    placeholder="운임(여비) 예산 코드 입력"
+                  />
+                  {errors.budgetCodeTransport && (
+                    <p className="text-sm text-red-600">{errors.budgetCodeTransport.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="budgetCodeAccommodation">숙박비 예산 코드</Label>
+                  <Input
+                    id="budgetCodeAccommodation"
+                    {...register('budgetCodeAccommodation')}
+                    placeholder="숙박비 예산 코드 입력"
+                  />
+                  {errors.budgetCodeAccommodation && (
+                    <p className="text-sm text-red-600">{errors.budgetCodeAccommodation.message}</p>
+                  )}
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                * 예산 코드는 관리자만 확인할 수 있으며, 영수증 취합 시 사용됩니다.
+              </p>
+            </>
+          )}
         </CardContent>
       </Card>
 

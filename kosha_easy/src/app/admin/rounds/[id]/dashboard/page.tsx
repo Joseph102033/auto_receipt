@@ -5,7 +5,7 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, CheckCircle, Clock, XCircle } from 'lucide-react';
+import { Bell, CheckCircle, Clock, XCircle, FileSpreadsheet } from 'lucide-react';
 import { SubmissionPieChart } from '@/features/dashboard/components/SubmissionPieChart';
 import { SubmissionTrendChart } from '@/features/dashboard/components/SubmissionTrendChart';
 import { DepartmentChart } from '@/features/dashboard/components/DepartmentChart';
@@ -14,6 +14,7 @@ import { SendNotificationDialog } from '@/features/notifications/components/Send
 import { useRound } from '@/features/rounds/hooks/useRounds';
 import { useSubmissionsByRound } from '@/features/submissions/hooks/useSubmissions';
 import { useParticipants } from '@/features/participants/hooks/useParticipants';
+import { exportReceiptSummaryToExcel } from '@/features/dashboard/utils/exportToExcel';
 import { format } from 'date-fns';
 
 export default function AdminRoundDashboardPage(props: { params: Promise<{ id: string }> }) {
@@ -131,6 +132,45 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
   // Get only not-submitted participants for notification
   const notSubmittedParticipants = participantsList.filter((p) => p.status === 'not_submitted');
 
+  // Handle receipt export
+  const handleExportReceipts = () => {
+    if (!round || !submissions || !participants) return;
+
+    // Aggregate amounts by participant
+    const participantAmounts = participants
+      .filter((p) => round.participants?.includes(p.id))
+      .map((participant) => {
+        const participantSubmissions = submissions.filter(
+          (s) => s.participantId === participant.id
+        );
+
+        // Sum up all transport and accommodation amounts
+        const amountTransport = participantSubmissions.reduce(
+          (sum, s) => sum + (s.amountTransport || 0),
+          0
+        );
+        const amountAccommodation = participantSubmissions.reduce(
+          (sum, s) => sum + (s.amountAccommodation || 0),
+          0
+        );
+
+        return {
+          participantName: participant.name,
+          amountTransport,
+          amountAccommodation,
+        };
+      })
+      .filter((p) => p.amountTransport > 0 || p.amountAccommodation > 0); // Only include participants with amounts
+
+    exportReceiptSummaryToExcel(participantAmounts, {
+      title: round.title,
+      startDate: format(new Date(round.startDate), 'yyyy-MM-dd'),
+      endDate: format(new Date(round.endDate), 'yyyy-MM-dd'),
+      budgetCodeTransport: round.budgetCodeTransport,
+      budgetCodeAccommodation: round.budgetCodeAccommodation,
+    });
+  };
+
   if (loadingRound || loadingSubmissions || loadingParticipants) {
     return (
       <AdminLayout>
@@ -213,6 +253,27 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
           participants={participantsList}
           stats={stats}
         />
+
+        {/* Receipt Summary Export */}
+        <Card>
+          <CardHeader>
+            <CardTitle>영수증 취합</CardTitle>
+            <CardDescription>
+              참가자별 운임 및 숙박비를 예산 코드와 함께 엑셀로 다운로드합니다
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={handleExportReceipts} variant="outline">
+              <FileSpreadsheet className="mr-2 h-4 w-4" />
+              영수증 취합 내역 다운로드
+            </Button>
+            {(!round.budgetCodeTransport && !round.budgetCodeAccommodation) && (
+              <p className="text-sm text-muted-foreground mt-2">
+                * 예산 코드가 설정되지 않았습니다. 차수 수정에서 예산 코드를 입력하세요.
+              </p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Participants List */}
         <Card>

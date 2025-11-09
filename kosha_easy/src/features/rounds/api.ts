@@ -47,6 +47,8 @@ export async function fetchRounds(): Promise<RoundWithStats[]> {
         description: round.description,
         startDate: round.start_date,
         endDate: round.end_date,
+        budgetCodeTransport: round.budget_code_transport,
+        budgetCodeAccommodation: round.budget_code_accommodation,
         participants: participantIds,
         requiredDocuments: round.required_documents || [],
         createdAt: round.created_at,
@@ -94,6 +96,8 @@ export async function fetchRound(id: string): Promise<Round | null> {
     description: round.description,
     startDate: round.start_date,
     endDate: round.end_date,
+    budgetCodeTransport: round.budget_code_transport,
+    budgetCodeAccommodation: round.budget_code_accommodation,
     participants: participantIds,
     requiredDocuments: round.required_documents || [],
     createdAt: round.created_at,
@@ -115,6 +119,8 @@ export async function createRound(input: CreateRoundInput): Promise<Round> {
       description: input.description,
       start_date: input.startDate,
       end_date: input.endDate,
+      budget_code_transport: input.budgetCodeTransport,
+      budget_code_accommodation: input.budgetCodeAccommodation,
       required_documents: input.requiredDocuments,
     })
     .select()
@@ -148,6 +154,8 @@ export async function createRound(input: CreateRoundInput): Promise<Round> {
     description: round.description,
     startDate: round.start_date,
     endDate: round.end_date,
+    budgetCodeTransport: round.budget_code_transport,
+    budgetCodeAccommodation: round.budget_code_accommodation,
     participants: input.participants,
     requiredDocuments: round.required_documents || [],
     createdAt: round.created_at,
@@ -167,6 +175,8 @@ export async function updateRound(input: UpdateRoundInput): Promise<Round> {
   if (input.description !== undefined) updateData.description = input.description;
   if (input.startDate !== undefined) updateData.start_date = input.startDate;
   if (input.endDate !== undefined) updateData.end_date = input.endDate;
+  if (input.budgetCodeTransport !== undefined) updateData.budget_code_transport = input.budgetCodeTransport;
+  if (input.budgetCodeAccommodation !== undefined) updateData.budget_code_accommodation = input.budgetCodeAccommodation;
   if (input.requiredDocuments !== undefined) updateData.required_documents = input.requiredDocuments;
 
   const { data: round, error } = await supabase
@@ -274,7 +284,7 @@ export async function fetchParticipantRounds(): Promise<Array<Round & {
         description: round.description,
         startDate: round.start_date,
         endDate: round.end_date,
-        budgetCode: round.budget_code,
+        // Budget codes are admin-only, not exposed to participants
         participants: [],
         requiredDocuments,
         createdAt: round.created_at,

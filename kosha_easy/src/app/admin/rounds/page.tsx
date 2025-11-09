@@ -40,7 +40,8 @@ export default function AdminRoundsPage() {
         description: data.description,
         startDate: data.startDate,
         endDate: data.endDate,
-        budgetCode: data.budgetCode,
+        budgetCodeTransport: data.budgetCodeTransport,
+        budgetCodeAccommodation: data.budgetCodeAccommodation,
         participants: data.participants,
         requiredDocuments: data.requiredDocuments,
       });
@@ -85,7 +86,7 @@ export default function AdminRoundsPage() {
                 <DialogTitle>새 차수 만들기</DialogTitle>
                 <DialogDescription>문서 제출 차수를 생성합니다</DialogDescription>
               </DialogHeader>
-              <RoundForm onSubmit={handleCreate} isLoading={createMutation.isPending} />
+              <RoundForm onSubmit={handleCreate} isLoading={createMutation.isPending} isAdmin={true} />
             </DialogContent>
           </Dialog>
         </div>

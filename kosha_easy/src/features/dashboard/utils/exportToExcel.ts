@@ -115,6 +115,89 @@ export function exportStatisticsToExcel(
 }
 
 /**
+ * Export receipt summary to Excel
+ *
+ * Exports aggregated receipt data with budget codes in the format:
+ * 연번 | 차수명 | 날짜 | 구분 | 예산코드 | 참가자명 | 금액
+ */
+export function exportReceiptSummaryToExcel(
+  receiptData: Array<{
+    participantName: string;
+    amountTransport: number;
+    amountAccommodation: number;
+  }>,
+  roundInfo: {
+    title: string;
+    startDate: string;
+    endDate: string;
+    budgetCodeTransport?: string;
+    budgetCodeAccommodation?: string;
+  }
+) {
+  // Prepare data rows
+  const data: any[] = [];
+  let rowNumber = 1;
+
+  // Format date range
+  const dateRange = `${roundInfo.startDate} ~ ${roundInfo.endDate}`;
+
+  // Create rows for each participant (2 rows per participant: transport + accommodation)
+  receiptData.forEach((item) => {
+    // Transport row (운임/여비)
+    if (item.amountTransport > 0) {
+      data.push({
+        연번: rowNumber++,
+        차수명: roundInfo.title,
+        날짜: dateRange,
+        구분: '여비',
+        예산코드: roundInfo.budgetCodeTransport || '',
+        참가자명: item.participantName,
+        금액: item.amountTransport,
+      });
+    }
+
+    // Accommodation row (숙박비)
+    if (item.amountAccommodation > 0) {
+      data.push({
+        연번: rowNumber++,
+        차수명: roundInfo.title,
+        날짜: dateRange,
+        구분: '숙박',
+        예산코드: roundInfo.budgetCodeAccommodation || '',
+        참가자명: item.participantName,
+        금액: item.amountAccommodation,
+      });
+    }
+  });
+
+  // Create worksheet
+  const worksheet = XLSX.utils.json_to_sheet(data);
+
+  // Set column widths
+  const columnWidths = [
+    { wch: 8 },  // 연번
+    { wch: 25 }, // 차수명
+    { wch: 25 }, // 날짜
+    { wch: 12 }, // 구분
+    { wch: 20 }, // 예산코드
+    { wch: 15 }, // 참가자명
+    { wch: 12 }, // 금액
+  ];
+  worksheet['!cols'] = columnWidths;
+
+  // Create workbook
+  const workbook = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(workbook, worksheet, '영수증 취합');
+
+  // Generate filename with timestamp
+  const timestamp = new Date().toISOString().split('T')[0];
+  const filename = `${roundInfo.title}_영수증취합_${timestamp}.xlsx`;
+
+  // Download file
+  XLSX.writeFile(workbook, filename);
+}
+
+/**
  * Helper function to convert status to Korean text
  */
 function getStatusText(status: string): string {

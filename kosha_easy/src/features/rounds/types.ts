@@ -10,7 +10,8 @@ export interface Round {
   description: string;
   startDate: string; // ISO 8601 date string
   endDate: string; // ISO 8601 date string
-  budgetCode?: string; // 예산 코드 (관리자 전용)
+  budgetCodeTransport?: string; // 운임 예산 코드 (관리자 전용)
+  budgetCodeAccommodation?: string; // 숙박비 예산 코드 (관리자 전용)
   participants: string[]; // Array of participant IDs
   requiredDocuments: string[]; // Array of required document names
   createdAt: string;
@@ -22,7 +23,8 @@ export interface CreateRoundInput {
   description: string;
   startDate: string;
   endDate: string;
-  budgetCode?: string;
+  budgetCodeTransport?: string;
+  budgetCodeAccommodation?: string;
   participants: string[];
   requiredDocuments: string[];
 }
@@ -33,7 +35,8 @@ export interface UpdateRoundInput {
   description?: string;
   startDate?: string;
   endDate?: string;
-  budgetCode?: string;
+  budgetCodeTransport?: string;
+  budgetCodeAccommodation?: string;
   participants?: string[];
   requiredDocuments?: string[];
 }

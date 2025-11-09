@@ -64,7 +64,7 @@ export default function AdminRoundEditPage(props: { params: Promise<{ id: string
 
         {/* Edit Form */}
         {!isLoading && !error && round && (
-          <RoundForm initialData={round} onSubmit={handleUpdate} isLoading={updateMutation.isPending} />
+          <RoundForm initialData={round} onSubmit={handleUpdate} isLoading={updateMutation.isPending} isAdmin={true} />
         )}
 
         {/* Round Not Found */}

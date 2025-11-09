@@ -32,9 +32,13 @@ export const createRoundSchema = z.object({
       const parsedDate = new Date(date);
       return !isNaN(parsedDate.getTime());
     }, '유효한 날짜를 입력해주세요'),
-  budgetCode: z
+  budgetCodeTransport: z
     .string()
-    .max(50, '예산 코드는 50자 이내로 입력해주세요')
+    .max(50, '운임 예산 코드는 50자 이내로 입력해주세요')
+    .optional(),
+  budgetCodeAccommodation: z
+    .string()
+    .max(50, '숙박비 예산 코드는 50자 이내로 입력해주세요')
     .optional(),
   participants: z
     .array(z.string())
@@ -85,9 +89,13 @@ export const updateRoundSchema = z.object({
       return !isNaN(parsedDate.getTime());
     }, '유효한 날짜를 입력해주세요')
     .optional(),
-  budgetCode: z
+  budgetCodeTransport: z
     .string()
-    .max(50, '예산 코드는 50자 이내로 입력해주세요')
+    .max(50, '운임 예산 코드는 50자 이내로 입력해주세요')
+    .optional(),
+  budgetCodeAccommodation: z
+    .string()
+    .max(50, '숙박비 예산 코드는 50자 이내로 입력해주세요')
     .optional(),
   participants: z
     .array(z.string())
