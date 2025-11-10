@@ -155,16 +155,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
       console.log('Creating notifications for', notifications.length, 'participants');
 
-      const adminClient = await createPureClient();
-      const { error: notifError } = await adminClient
-        .from('notifications')
-        .insert(notifications);
+      // Use service role client for inserting notifications
+      // createPureClient bypasses RLS by not using cookies
+      try {
+        const adminClient = await createPureClient();
+        const { error: notifError } = await adminClient
+          .from('notifications')
+          .insert(notifications);
 
-      if (notifError) {
-        console.error('Failed to create notifications:', notifError);
+        if (notifError) {
+          console.error('Failed to create notifications:', notifError);
+          // Continue execution even if notification creation fails
+        } else {
+          console.log('Notifications created successfully');
+        }
+      } catch (clientError) {
+        console.error('Failed to create admin client:', clientError);
         // Continue execution even if notification creation fails
-      } else {
-        console.log('Notifications created successfully');
       }
 
       return NextResponse.json({
