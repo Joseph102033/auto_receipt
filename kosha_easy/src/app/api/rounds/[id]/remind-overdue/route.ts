@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createPureClient } from '@/lib/supabase/server';
 import { sendSMS } from '@/lib/sms/solapi';
 
 interface RouteParams {
@@ -137,7 +137,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         message,
       });
 
-      // Create notifications in database
+      // Create notifications in database using service role to bypass RLS
       const notifications = participantsWithPhone.map(p => ({
         type: 'sms',
         status: 'unread',
@@ -149,7 +149,15 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         round_id: roundId,
       }));
 
-      await supabase.from('notifications').insert(notifications);
+      const adminClient = await createPureClient();
+      const { error: notifError } = await adminClient
+        .from('notifications')
+        .insert(notifications);
+
+      if (notifError) {
+        console.error('Failed to create notifications:', notifError);
+        // Continue execution even if notification creation fails
+      }
 
       return NextResponse.json({
         success: true,
