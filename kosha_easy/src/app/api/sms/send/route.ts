@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { sendSMS, isValidPhoneNumber } from '@/lib/sms/ncp-sens';
+import { sendSMS, isValidPhoneNumber } from '@/lib/sms/solapi';
 import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -66,9 +66,12 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      requestId: result.requestId,
-      statusCode: result.statusCode,
-      statusName: result.statusName,
+      groupId: result.groupId,
+      accountId: result.accountId,
+      totalCount: result.count.total,
+      successCount: result.count.sentSuccess,
+      failedCount: result.count.sentFailed,
+      pendingCount: result.count.sentPending,
       recipients: recipients.length,
     });
   } catch (error: any) {

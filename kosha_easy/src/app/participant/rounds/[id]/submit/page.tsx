@@ -132,8 +132,11 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
       });
 
       // Submit each document
-      const promises = Object.values(documentSubmissions).map((doc) => {
+      // Store amounts only in the first document to prevent duplication when summing
+      const documentsArray = Object.values(documentSubmissions);
+      const promises = documentsArray.map((doc, index) => {
         const isNotApplicable = doc.notApplicable;
+        const isFirstDocument = index === 0;
 
         console.log('DEBUG - doc object:', doc);
         console.log('DEBUG - documentName:', doc.documentName);
@@ -143,12 +146,18 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
           throw new Error('문서명이 누락되었습니다. 페이지를 새로고침 후 다시 시도해주세요.');
         }
 
+        // Only store amounts in the first document to avoid duplication
+        const documentAmountTransport = isFirstDocument ? parsedTransport : 0;
+        const documentAmountAccommodation = isFirstDocument ? parsedAccommodation : 0;
+        const documentAmountEtc = isFirstDocument ? parsedEtc : 0;
+
         console.log('Submitting document:', {
           documentName: doc.documentName,
           isNotApplicable,
-          amountTransport: parsedTransport,
-          amountAccommodation: parsedAccommodation,
-          amountEtc: parsedEtc,
+          isFirstDocument,
+          amountTransport: documentAmountTransport,
+          amountAccommodation: documentAmountAccommodation,
+          amountEtc: documentAmountEtc,
           status: isNotApplicable ? 'not_applicable' : 'submitted',
         });
 
@@ -159,10 +168,10 @@ export default function ParticipantSubmitPage(props: { params: Promise<{ id: str
           file: doc.file,
           status: (isNotApplicable ? 'not_applicable' : 'submitted') as 'submitted' | 'not_applicable',
           notApplicableReason: doc.notApplicableReason,
-          amountTransport: parsedTransport,
-          amountAccommodation: parsedAccommodation,
-          amountEtc: parsedEtc,
-          amountNote: amountNote || '',
+          amountTransport: documentAmountTransport,
+          amountAccommodation: documentAmountAccommodation,
+          amountEtc: documentAmountEtc,
+          amountNote: isFirstDocument ? (amountNote || '') : '',
         };
 
         console.log('Final submission data:', submissionData);

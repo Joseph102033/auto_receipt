@@ -1,52 +1,70 @@
-# SMS 발송 기능 설정 가이드
+# SMS 발송 기능 설정 가이드 (솔라피)
 
-이 문서는 NCP SENS를 사용한 SMS 발송 기능 설정 방법을 안내합니다.
+이 문서는 솔라피(Solapi, 구 Coolsms)를 사용한 SMS 발송 기능 설정 방법을 안내합니다.
 
 ## 📋 목차
 
-1. [NCP SENS 설정](#ncp-sens-설정)
+1. [솔라피 가입 및 설정](#솔라피-가입-및-설정)
 2. [환경 변수 설정](#환경-변수-설정)
 3. [기능 사용 방법](#기능-사용-방법)
 4. [문제 해결](#문제-해결)
 
-## NCP SENS 설정
+## 솔라피 가입 및 설정
 
-### 1. Naver Cloud Platform 계정 생성
+### 1. 솔라피 회원가입
 
-1. [Naver Cloud Platform](https://www.ncloud.com/) 접속
-2. 회원가입 및 로그인
-3. 콘솔로 이동
+1. [솔라피 홈페이지](https://solapi.com/) 접속
+2. 우측 상단 "회원가입" 또는 "무료 체험하기" 클릭
+3. **개인 회원으로 가입** (사업자 불필요!) ✅
+4. 이메일 인증 및 가입 완료
+5. **무료 크레딧 5,000원 자동 지급!** 🎉
 
-### 2. SENS 서비스 신청
+> **개인도 사용 가능**: 솔라피는 사업자 등록증 없이 개인 신분증만으로 API 사용이 가능합니다!
 
-1. 콘솔 > Services > Application Service > SENS
-2. "이용 신청하기" 클릭
-3. SMS 서비스 선택 및 약관 동의
+### 2. 본인 인증
 
-### 3. 프로젝트 생성
+1. 로그인 후 대시보드 접속
+2. 상단에 "본인인증이 필요합니다" 알림 확인
+3. "본인인증 하기" 클릭
+4. 신분증 사진 업로드 (주민등록증, 운전면허증 등)
+5. 승인 대기 (통상 **5분 ~ 1시간 이내**)
+6. 승인 완료 후 API 사용 가능
 
-1. SENS > Projects > "프로젝트 추가" 클릭
-2. 프로젝트 이름 입력 (예: "코샤 서류 제출 시스템")
-3. 프로젝트 생성 완료
+### 3. 발신번호 등록
 
-### 4. 발신번호 등록
+1. 대시보드 > "발신번호 관리" 클릭
+2. "발신번호 추가" 버튼 클릭
+3. 발신번호 입력 (예: 010-1234-5678)
+4. 인증 방법 선택:
+   - **휴대폰 SMS 인증**: 즉시 완료 ⚡
+   - **서류 인증**: 통신사 가입증명원 (1일 소요)
+5. SMS 인증번호 입력 → 즉시 등록 완료!
 
-1. SENS > Calling Number > "발신번호 추가" 클릭
-2. 발신번호 입력 (예: 010-1234-5678)
-3. 인증 절차 진행 (SMS 인증 또는 서류 제출)
-4. 승인 대기 (통상 1-2영업일)
+### 4. API Key 발급
 
-### 5. API 인증 정보 확인
+1. 대시보드 > "API Keys" 메뉴 클릭
+2. "새 API Key 만들기" 버튼 클릭
+3. API Key 이름 입력 (예: "코샤 서류 제출 시스템")
+4. **API Key**와 **API Secret** 복사
+   ```
+   API Key: NCSXXXXXXXXXXXXX
+   API Secret: XXXXXXXXXXXXXXXXXXXXX
+   ```
+5. ⚠️ **API Secret은 다시 확인할 수 없으니 안전한 곳에 보관!**
 
-#### Service ID 확인
-1. SENS > Projects에서 생성한 프로젝트 선택
-2. "Service ID" 복사 (예: `ncp:sms:kr:123456789012:myproject`)
+### 5. 충전하기 (선택)
 
-#### Access Key & Secret Key 생성
-1. 콘솔 우측 상단 > 마이페이지 > 계정 관리 > 인증키 관리
-2. "신규 API 인증키 생성" 클릭
-3. Access Key와 Secret Key 생성
-4. **Secret Key는 한 번만 표시되므로 반드시 안전한 곳에 보관**
+무료 크레딧 5,000원으로 시작하고, 부족 시 충전:
+
+1. 대시보드 > "충전하기" 클릭
+2. 최소 충전 금액: **10,000원** (약 833건 발송 가능)
+3. 결제 수단 선택 (카드, 계좌이체, 무통장입금)
+4. 충전 완료
+
+**충전 권장량**:
+- 소규모 프로젝트: 10,000원 ~ 30,000원
+- 중간 규모: 50,000원 ~ 100,000원
+- 대규모: 200,000원 이상
 
 ## 환경 변수 설정
 
@@ -55,27 +73,31 @@
 프로젝트 루트의 `.env.local` 파일에 다음 환경 변수를 추가합니다:
 
 ```env
-# NCP SENS SMS Configuration
-NCP_SERVICE_ID=ncp:sms:kr:123456789012:myproject
-NCP_ACCESS_KEY=your-access-key-here
-NCP_SECRET_KEY=your-secret-key-here
-NCP_SENDER_PHONE=010-1234-5678
+# Solapi SMS Configuration
+SOLAPI_API_KEY=your-api-key-here
+SOLAPI_API_SECRET=your-api-secret-here
+SOLAPI_SENDER_PHONE=010-1234-5678
 ```
+
+**각 변수 설명**:
+- `SOLAPI_API_KEY`: 솔라피에서 발급받은 API Key
+- `SOLAPI_API_SECRET`: 솔라피에서 발급받은 API Secret
+- `SOLAPI_SENDER_PHONE`: 등록한 발신번호 (하이픈 포함 가능)
 
 ### 2. Vercel 환경 변수 설정
 
 프로덕션 환경에서 SMS 기능을 사용하려면 Vercel에도 환경 변수를 설정해야 합니다:
 
-1. Vercel Dashboard > 프로젝트 선택
+1. [Vercel Dashboard](https://vercel.com/dashboard) > 프로젝트 선택
 2. Settings > Environment Variables
 3. 다음 변수들을 추가:
-   - `NCP_SERVICE_ID`
-   - `NCP_ACCESS_KEY`
-   - `NCP_SECRET_KEY`
-   - `NCP_SENDER_PHONE`
+   - `SOLAPI_API_KEY`
+   - `SOLAPI_API_SECRET`
+   - `SOLAPI_SENDER_PHONE`
 
 4. "Production", "Preview", "Development" 모두 체크
 5. Save
+6. 재배포 (Redeploy)
 
 ## 기능 사용 방법
 
@@ -85,7 +107,9 @@ NCP_SENDER_PHONE=010-1234-5678
 
 1. 알림 타입을 "SMS"로 선택
 2. 수신자 선택 (전화번호가 등록된 참여자만 표시)
-3. 메시지 작성 (90바이트 이하 권장)
+3. 메시지 작성
+   - **SMS (권장)**: 45자 이하 (한글 기준) - 12원
+   - **LMS (자동)**: 46자 이상 시 자동으로 LMS로 발송 - 35원
 4. 발송 클릭
 
 ### 2. 미제출자 독촉
@@ -107,20 +131,50 @@ NCP_SENDER_PHONE=010-1234-5678
 
 ### 3. SMS 발송 제한사항
 
-- **90바이트 초과 시 LMS(장문)로 발송** (요금 상승)
-- **한글 45자, 영문 90자 권장**
-- **발신번호는 사전 등록된 번호만 사용 가능**
-- **수신 거부 번호로는 발송 불가**
+**메시지 길이**:
+- SMS: 90바이트 (한글 45자, 영문 90자) - **12원**
+- LMS: 2,000바이트 (한글 1,000자, 영문 2,000자) - **35원**
+
+**자동 타입 결정**:
+- 시스템이 메시지 길이를 자동 감지하여 SMS/LMS 결정
+- 가능한 한 45자 이내로 작성 권장
+
+**발신번호**:
+- 사전 등록된 번호만 사용 가능
+- 미등록 번호는 발송 불가
+
+**발송 제한**:
+- 본인인증 완료 전: 발송 불가
+- 본인인증 완료 후: 제한 없음
 
 ## 요금 안내
 
-| 메시지 타입 | 설명 | 요금 (VAT 별도) |
-|------------|------|----------------|
-| SMS | 90바이트 이하 | 건당 9원 |
-| LMS | 2,000바이트 이하 | 건당 30원 |
-| MMS | 이미지 포함 | 건당 40원 |
+### 기본 요금 (VAT 포함)
 
-*2024년 1월 기준, 실제 요금은 NCP 공식 홈페이지 확인 필요
+| 메시지 타입 | 바이트 | 요금 |
+|------------|--------|------|
+| **SMS** | 90바이트 이하 | **12원** |
+| **LMS** | 2,000바이트 이하 | **35원** |
+| **MMS** | 이미지 포함 | **50원** |
+
+### 충전 금액별 발송 가능 건수 (SMS 기준)
+
+| 충전 금액 | 발송 가능 건수 (SMS) |
+|----------|-------------------|
+| 5,000원 (무료) | 약 416건 |
+| 10,000원 | 약 833건 |
+| 30,000원 | 약 2,500건 |
+| 50,000원 | 약 4,166건 |
+| 100,000원 | 약 8,333건 |
+
+*2024년 기준, 실제 요금은 솔라피 공식 홈페이지 확인 필요
+
+### 비용 절감 팁
+
+1. **45자 이내로 작성**: SMS 요금(12원)으로 발송
+2. **줄임말 활용**: 불필요한 단어 제거
+3. **무료 크레딧 활용**: 가입 시 5,000원 무료
+4. **테스트 환경 활용**: 개발 시 실제 발송 없이 테스트 가능
 
 ## 문제 해결
 
@@ -129,19 +183,32 @@ NCP_SENDER_PHONE=010-1234-5678
 1. **환경 변수 확인**
    ```bash
    # .env.local에 모든 변수가 있는지 확인
-   NCP_SERVICE_ID, NCP_ACCESS_KEY, NCP_SECRET_KEY, NCP_SENDER_PHONE
+   SOLAPI_API_KEY, SOLAPI_API_SECRET, SOLAPI_SENDER_PHONE
    ```
 
-2. **발신번호 승인 상태 확인**
-   - SENS 콘솔 > Calling Number에서 상태가 "승인"인지 확인
+2. **본인인증 완료 확인**
+   - 솔라피 대시보드에서 본인인증 상태 확인
+   - "본인인증 완료" 상태여야 API 사용 가능
 
-3. **API 인증키 확인**
-   - Access Key와 Secret Key가 올바른지 확인
-   - Secret Key는 공백이나 줄바꿈 없이 정확히 입력
+3. **API Key 확인**
+   - 솔라피 대시보드 > API Keys에서 키 상태 확인
+   - API Secret은 정확히 복사했는지 확인
 
-4. **전화번호 형식 확인**
-   - 수신자 전화번호가 올바른 형식인지 확인
-   - 하이픈(-) 포함 여부는 상관없음 (자동 제거됨)
+4. **발신번호 등록 확인**
+   - 솔라피 > 발신번호 관리에서 상태가 "사용중"인지 확인
+   - 미등록 상태면 SMS 인증 진행
+
+5. **잔액 확인**
+   - 솔라피 대시보드에서 잔액 확인
+   - 잔액 부족 시 충전 필요
+
+### 전화번호 형식 오류
+
+전화번호는 다음 형식 중 하나여야 합니다:
+- `010-1234-5678` (하이픈 포함)
+- `01012345678` (하이픈 없음)
+
+시스템이 자동으로 하이픈을 제거하므로, 두 형식 모두 사용 가능합니다.
 
 ### 개발 서버 재시작
 
@@ -151,6 +218,15 @@ NCP_SENDER_PHONE=010-1234-5678
 # Ctrl+C로 서버 중지 후
 npm run dev
 ```
+
+### API 에러 코드
+
+솔라피 주요 에러:
+- `InvalidAPIKey`: API Key 또는 Secret이 잘못됨
+- `InsufficientBalance`: 잔액 부족
+- `NotVerified`: 본인인증 미완료
+- `InvalidPhoneNumber`: 발신번호 미등록
+- 기타: [솔라피 에러 코드 문서](https://docs.solapi.com/api-reference/errors) 참고
 
 ### 로그 확인
 
@@ -162,18 +238,97 @@ Failed to send SMS: [에러 메시지]
 
 서버 로그 확인:
 ```bash
+# 개발 환경
+터미널 콘솔 확인
+
 # Vercel 배포 환경
-Vercel Dashboard > Deployments > 로그 확인
+Vercel Dashboard > Deployments > Runtime Logs
 ```
+
+### 잔액 조회 API
+
+코드에서 잔액을 조회하려면:
+
+```typescript
+import { getSMSBalance } from '@/lib/sms/solapi';
+
+const balance = await getSMSBalance();
+console.log(`남은 잔액: ${balance}원`);
+```
+
+## 테스트 환경 활용
+
+솔라피는 실제 발송 없이 테스트할 수 있는 환경을 제공합니다:
+
+1. 대시보드 > "개발 > 테스트 발송"
+2. 테스트 API로 발송 시뮬레이션
+3. 실제 비용 발생 없음
+
+자세한 내용은 [솔라피 테스트 문서](https://docs.solapi.com/testing) 참고
+
+## 기타 서비스에서 마이그레이션
+
+### NCP SENS에서 마이그레이션
+
+1. 솔라피 가입 및 본인인증 완료
+2. API Key 발급
+3. 환경 변수 변경
+4. 코드는 이미 솔라피로 전환됨
+5. 서버 재시작
+
+### 알리고에서 마이그레이션
+
+동일한 절차로 진행하면 됩니다.
+
+## 솔라피 vs 타 서비스 비교
+
+| 항목 | 솔라피 | 알리고 | NCP SENS |
+|------|--------|--------|----------|
+| 가입 조건 | **개인 가능** ✅ | 사업자만 (API) | 사업자만 |
+| API 사용 | **개인 가능** ✅ | 사업자만 | 사업자만 |
+| 최소 충전 | 10,000원 | 5,000원 | 없음 (후불) |
+| SMS 요금 | 12원 | 11원 | 9원 |
+| 무료 크레딧 | **5,000원** ✅ | 없음 | 없음 |
+| 본인인증 시간 | **5분 ~ 1시간** ✅ | - | 1-2일 |
+| 설정 난이도 | 간단 ✅ | 간단 | 복잡 |
+| API 문서 | **최고** ✅ | 보통 | 좋음 |
+| 개발자 친화성 | **최고** ✅ | 보통 | 좋음 |
 
 ## 참고 자료
 
-- [NCP SENS 공식 문서](https://api.ncloud-docs.com/docs/ai-application-service-sens-smsv2)
-- [NCP SENS 콘솔](https://console.ncloud.com/sens/project)
-- [NCP 요금 안내](https://www.ncloud.com/product/applicationService/sens)
+- [솔라피 공식 홈페이지](https://solapi.com/)
+- [솔라피 API 문서](https://docs.solapi.com/)
+- [솔라피 개발자 가이드](https://docs.solapi.com/api-reference/overview)
+- [요금 안내](https://solapi.com/pricing)
+- [에러 코드 가이드](https://docs.solapi.com/api-reference/errors)
 
 ## 문의
 
 기술 지원이 필요한 경우:
-- NCP 고객센터: 1544-3889
-- 이메일: support@ncloud.com
+- 솔라피 고객센터: 02-6214-2000
+- 평일 09:00 - 18:00 (주말, 공휴일 휴무)
+- 이메일: support@solapi.com
+- 온라인 문의: [솔라피 지원센터](https://solapi.com/support)
+- 개발자 커뮤니티: [솔라피 개발자 포럼](https://community.solapi.com/)
+
+## 추가 팁
+
+### 대량 발송 최적화
+
+여러 건을 한 번에 발송할 때:
+- `send-many` API 사용 (이미 구현됨)
+- 최대 10,000건까지 한 번에 발송 가능
+- 발송 속도: 초당 약 100건
+
+### 발송 결과 확인
+
+대시보드에서 실시간 발송 현황 확인:
+1. 대시보드 > "메시지 > 메시지 목록"
+2. 발송 상태, 실패 원인 등 확인
+3. 통계 및 리포트 다운로드 가능
+
+### 예약 발송
+
+특정 시간에 발송하려면:
+- API 호출 시 `scheduledDate` 파라미터 추가
+- 최대 6개월 이후까지 예약 가능

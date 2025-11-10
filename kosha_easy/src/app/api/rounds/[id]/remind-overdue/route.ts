@@ -7,7 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { sendSMS } from '@/lib/sms/ncp-sens';
+import { sendSMS } from '@/lib/sms/solapi';
 
 interface RouteParams {
   params: Promise<{
@@ -160,7 +160,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         message: 'SMS reminders sent successfully',
         overdueCount: overdueParticipantIds.size,
         smsSentCount: participantsWithPhone.length,
-        requestId: smsResult.requestId,
+        groupId: smsResult.groupId,
+        totalCount: smsResult.count.total,
+        successCount: smsResult.count.sentSuccess,
+        failedCount: smsResult.count.sentFailed,
       });
     } catch (smsError: any) {
       console.error('Failed to send SMS:', smsError);

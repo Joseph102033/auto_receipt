@@ -25,6 +25,8 @@ export function FileUpload({
     const file = e.target.files?.[0];
     if (file) {
       onFileChange(file);
+      // Reset input value to allow re-selecting files
+      e.target.value = '';
     }
   };
 
