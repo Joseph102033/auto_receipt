@@ -132,10 +132,14 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     const phoneNumbers = participantsWithPhone.map(p => p.phone);
 
     try {
+      console.log('Attempting to send SMS to:', phoneNumbers);
+
       const smsResult = await sendSMS({
         to: phoneNumbers,
         message,
       });
+
+      console.log('SMS sent successfully:', smsResult);
 
       // Create notifications in database using service role to bypass RLS
       const notifications = participantsWithPhone.map(p => ({
@@ -149,6 +153,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         round_id: roundId,
       }));
 
+      console.log('Creating notifications for', notifications.length, 'participants');
+
       const adminClient = await createPureClient();
       const { error: notifError } = await adminClient
         .from('notifications')
@@ -157,6 +163,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       if (notifError) {
         console.error('Failed to create notifications:', notifError);
         // Continue execution even if notification creation fails
+      } else {
+        console.log('Notifications created successfully');
       }
 
       return NextResponse.json({
@@ -170,7 +178,11 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         failedCount: smsResult.count.sentFailed,
       });
     } catch (smsError: any) {
-      console.error('Failed to send SMS:', smsError);
+      console.error('Failed to send SMS:', {
+        error: smsError,
+        message: smsError.message,
+        stack: smsError.stack,
+      });
 
       return NextResponse.json(
         {
