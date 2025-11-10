@@ -16,12 +16,8 @@ export interface Notification {
   title: string;
   message: string;
   recipientId: string;
-  recipientName: string;
-  recipientEmail: string;
   senderId?: string;
-  senderName?: string;
   roundId?: string;
-  roundTitle?: string;
   createdAt: string;
   readAt?: string;
 }

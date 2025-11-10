@@ -112,22 +112,6 @@ export function NotificationItem({ notification, onClick, showActions = true }: 
 
         <div className="flex items-center gap-2 flex-wrap">
           <span className="text-xs text-grayscale-500">{formatDate(notification.createdAt)}</span>
-
-          {notification.roundTitle && (
-            <>
-              <span className="text-xs text-grayscale-400">•</span>
-              <Badge variant="outline" className="text-xs">
-                {notification.roundTitle}
-              </Badge>
-            </>
-          )}
-
-          {notification.senderName && (
-            <>
-              <span className="text-xs text-grayscale-400">•</span>
-              <span className="text-xs text-grayscale-500">{notification.senderName}</span>
-            </>
-          )}
         </div>
       </div>
 

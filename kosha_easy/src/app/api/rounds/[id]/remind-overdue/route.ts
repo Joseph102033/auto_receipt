@@ -145,12 +145,8 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         title: `${round.title} - 서류 제출 독촉`,
         message,
         recipient_id: p.id,
-        recipient_name: p.name,
-        recipient_email: p.phone, // Store phone in email field for now
         sender_id: user.id,
-        sender_name: profile.role,
         round_id: roundId,
-        round_title: round.title,
       }));
 
       await supabase.from('notifications').insert(notifications);
