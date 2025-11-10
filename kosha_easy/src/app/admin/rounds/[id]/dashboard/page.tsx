@@ -5,7 +5,7 @@ import { AdminLayout } from '@/components/layout/admin-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Bell, CheckCircle, Clock, XCircle, FileSpreadsheet } from 'lucide-react';
+import { Bell, CheckCircle, Clock, XCircle, FileSpreadsheet, MessageSquare } from 'lucide-react';
 import { SubmissionPieChart } from '@/features/dashboard/components/SubmissionPieChart';
 import { SubmissionTrendChart } from '@/features/dashboard/components/SubmissionTrendChart';
 import { DepartmentChart } from '@/features/dashboard/components/DepartmentChart';
@@ -17,11 +17,14 @@ import { useParticipants } from '@/features/participants/hooks/useParticipants';
 import { exportReceiptSummaryToExcel } from '@/features/dashboard/utils/exportToExcel';
 import { downloadReceiptsAsZip } from '@/features/dashboard/utils/downloadReceipts';
 import { format } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminRoundDashboardPage(props: { params: Promise<{ id: string }> }) {
   const { id: roundId } = usePromise(props.params);
   const [notificationDialogOpen, setNotificationDialogOpen] = useState(false);
   const [isDownloadingReceipts, setIsDownloadingReceipts] = useState(false);
+  const [isSendingReminder, setIsSendingReminder] = useState(false);
+  const { toast } = useToast();
 
   const { data: round, isLoading: loadingRound } = useRound(roundId);
   const { data: submissions = [], isLoading: loadingSubmissions } = useSubmissionsByRound(roundId);
@@ -133,6 +136,35 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
 
   // Get only not-submitted participants for notification
   const notSubmittedParticipants = participantsList.filter((p) => p.status === 'not_submitted');
+
+  // Handle SMS reminder to overdue participants
+  const handleRemindOverdue = async () => {
+    setIsSendingReminder(true);
+    try {
+      const response = await fetch(`/api/rounds/${roundId}/remind-overdue`, {
+        method: 'POST',
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to send reminders');
+      }
+
+      toast({
+        title: '독촉 SMS 발송 완료',
+        description: `미제출자 ${result.overdueCount}명 중 ${result.smsSentCount}명에게 SMS를 발송했습니다.`,
+      });
+    } catch (error: any) {
+      toast({
+        title: '독촉 SMS 발송 실패',
+        description: error.message || '알 수 없는 오류가 발생했습니다.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSendingReminder(false);
+    }
+  };
 
   // Handle receipt export
   const handleExportReceipts = () => {
@@ -270,6 +302,28 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
           participants={participantsList}
           stats={stats}
         />
+
+        {/* Overdue Reminders */}
+        {stats.notSubmitted > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>미제출자 독촉</CardTitle>
+              <CardDescription>
+                서류를 제출하지 않은 {stats.notSubmitted}명의 참여자에게 SMS로 독촉 알림을 발송합니다
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button
+                onClick={handleRemindOverdue}
+                variant="destructive"
+                disabled={isSendingReminder}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {isSendingReminder ? 'SMS 발송 중...' : '미제출자에게 SMS 독촉 발송'}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Receipt Summary Export */}
         <Card>

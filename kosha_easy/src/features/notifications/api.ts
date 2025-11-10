@@ -213,8 +213,32 @@ export async function sendNotification(request: SendNotificationRequest): Promis
     throw new Error(`알림 발송 실패: ${error.message}`);
   }
 
-  // TODO: Send actual email/SMS based on type
-  // For now, we just create database records
+  // Send actual SMS if type is 'sms'
+  if (request.type === 'sms') {
+    const phoneNumbers = (recipients || [])
+      .map((r: any) => r.phone)
+      .filter((phone: string) => phone && phone.trim() !== '');
+
+    if (phoneNumbers.length > 0) {
+      try {
+        await fetch('/api/sms/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: phoneNumbers,
+            message: request.message,
+          }),
+        });
+      } catch (smsError) {
+        console.error('Failed to send SMS:', smsError);
+        // Don't throw - notification was saved, just SMS failed
+      }
+    }
+  }
+
+  // TODO: Send actual email based on type
 
   return (data || []).map((item: any) => ({
     id: item.id,
