@@ -22,15 +22,18 @@ export const createParticipantSchema = z.object({
   phone: z
     .string()
     .regex(/^[0-9-+()]*$/, '올바른 전화번호 형식이 아닙니다')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
   department: z
     .string()
     .max(50, '부서명은 50자 이내로 입력해주세요')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
   position: z
     .string()
     .max(50, '직급은 50자 이내로 입력해주세요')
-    .optional(),
+    .optional()
+    .or(z.literal('')),
 });
 
 /**

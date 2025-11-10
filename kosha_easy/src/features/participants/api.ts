@@ -123,27 +123,35 @@ export async function fetchParticipantStats(): Promise<ParticipantStats> {
 export async function createParticipant(input: CreateParticipantInput): Promise<Participant> {
   const supabase = createClient();
 
-  // Check for duplicate email
-  const { data: existing } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('email', input.email)
-    .single();
+  // Check for duplicate email if email is provided
+  if (input.email && input.email.trim() !== '') {
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('email', input.email)
+      .maybeSingle();
 
-  if (existing) {
-    throw new Error('이미 등록된 이메일입니다');
+    if (existing) {
+      throw new Error('이미 등록된 이메일입니다');
+    }
   }
+
+  // Generate a unique email if not provided (required by auth.users)
+  const email = input.email && input.email.trim() !== ''
+    ? input.email
+    : `noemail_${Date.now()}_${Math.random().toString(36).substring(7)}@participant.local`;
 
   // Create user in Supabase Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: input.email,
-    password: Math.random().toString(36).slice(-8) + 'Aa1!', // Random temporary password
+    email: email,
+    password: Math.random().toString(36).slice(-8) + 'Aa1!',
     options: {
+      emailRedirectTo: undefined,
       data: {
         name: input.name,
-        phone: input.phone,
-        department: input.department,
-        position: input.position,
+        phone: input.phone || '',
+        department: input.department || '',
+        position: input.position || '',
       },
     },
   });
@@ -156,22 +164,24 @@ export async function createParticipant(input: CreateParticipantInput): Promise<
     throw new Error('사용자 생성 실패');
   }
 
-  // Update profile with additional info
-  const { data: profile, error: profileError } = await supabase
+  // Manually insert into profiles table (trigger was removed)
+  const { data: profile, error: insertError } = await supabase
     .from('profiles')
-    .update({
+    .insert({
+      id: authData.user.id,
+      email: input.email && input.email.trim() !== '' ? input.email : null,
       name: input.name,
-      phone: input.phone,
-      department: input.department,
-      position: input.position,
+      phone: input.phone && input.phone.trim() !== '' ? input.phone : null,
+      department: input.department && input.department.trim() !== '' ? input.department : null,
+      position: input.position && input.position.trim() !== '' ? input.position : null,
+      role: 'participant',
       status: 'active',
     })
-    .eq('id', authData.user.id)
     .select()
     .single();
 
-  if (profileError || !profile) {
-    throw new Error(`프로필 업데이트 실패: ${profileError?.message}`);
+  if (insertError || !profile) {
+    throw new Error(`프로필 생성 실패: ${insertError?.message}`);
   }
 
   return {
@@ -195,13 +205,13 @@ export async function updateParticipant(input: UpdateParticipantInput): Promise<
   const supabase = createClient();
 
   // Check for duplicate email (excluding current participant)
-  if (input.email) {
+  if (input.email && input.email.trim() !== '') {
     const { data: existing } = await supabase
       .from('profiles')
       .select('id')
       .eq('email', input.email)
       .neq('id', input.id)
-      .single();
+      .maybeSingle();
 
     if (existing) {
       throw new Error('이미 등록된 이메일입니다');
@@ -209,12 +219,12 @@ export async function updateParticipant(input: UpdateParticipantInput): Promise<
   }
 
   const updateData: any = {};
-  if (input.name) updateData.name = input.name;
-  if (input.email) updateData.email = input.email;
-  if (input.phone) updateData.phone = input.phone;
-  if (input.department) updateData.department = input.department;
-  if (input.position) updateData.position = input.position;
-  if (input.status) updateData.status = input.status;
+  if (input.name !== undefined) updateData.name = input.name;
+  if (input.email !== undefined) updateData.email = input.email && input.email.trim() !== '' ? input.email : null;
+  if (input.phone !== undefined) updateData.phone = input.phone && input.phone.trim() !== '' ? input.phone : null;
+  if (input.department !== undefined) updateData.department = input.department && input.department.trim() !== '' ? input.department : null;
+  if (input.position !== undefined) updateData.position = input.position && input.position.trim() !== '' ? input.position : null;
+  if (input.status !== undefined) updateData.status = input.status;
 
   const { data, error } = await supabase
     .from('profiles')
@@ -242,15 +252,15 @@ export async function updateParticipant(input: UpdateParticipantInput): Promise<
 
 /**
  * DELETE /api/participants/:id
- * Delete a participant
+ * Delete a participant (hard delete)
  */
 export async function deleteParticipant(id: string): Promise<void> {
   const supabase = createClient();
 
-  // Set status to inactive instead of actually deleting
+  // Delete from profiles table (CASCADE will handle related records)
   const { error } = await supabase
     .from('profiles')
-    .update({ status: 'inactive' })
+    .delete()
     .eq('id', id);
 
   if (error) {

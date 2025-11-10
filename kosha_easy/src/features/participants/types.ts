@@ -7,10 +7,10 @@
 export interface Participant {
   id: string;
   name: string;
-  email: string;
-  phone?: string;
-  department?: string;
-  position?: string;
+  email?: string | null;
+  phone?: string | null;
+  department?: string | null;
+  position?: string | null;
   status: 'active' | 'inactive';
   createdAt: string;
   updatedAt: string;
@@ -18,7 +18,7 @@ export interface Participant {
 
 export interface CreateParticipantInput {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
   department?: string;
   position?: string;
@@ -36,7 +36,7 @@ export interface UpdateParticipantInput {
 
 export interface BulkImportParticipant {
   name: string;
-  email: string;
+  email?: string;
   phone?: string;
   department?: string;
   position?: string;
