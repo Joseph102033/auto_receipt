@@ -123,6 +123,8 @@ export async function fetchParticipantStats(): Promise<ParticipantStats> {
 export async function createParticipant(input: CreateParticipantInput): Promise<Participant> {
   const supabase = createClient();
 
+  console.log('Creating participant with input:', input);
+
   // Check for duplicate email if email is provided
   if (input.email && input.email.trim() !== '') {
     const { data: existing } = await supabase
@@ -136,39 +138,10 @@ export async function createParticipant(input: CreateParticipantInput): Promise<
     }
   }
 
-  // Generate a unique email if not provided (required by auth.users)
-  const email = input.email && input.email.trim() !== ''
-    ? input.email
-    : `noemail_${Date.now()}_${Math.random().toString(36).substring(7)}@participant.local`;
-
-  // Create user in Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: email,
-    password: Math.random().toString(36).slice(-8) + 'Aa1!',
-    options: {
-      emailRedirectTo: undefined,
-      data: {
-        name: input.name,
-        phone: input.phone || '',
-        department: input.department || '',
-        position: input.position || '',
-      },
-    },
-  });
-
-  if (authError) {
-    throw new Error(`사용자 생성 실패: ${authError.message}`);
-  }
-
-  if (!authData.user) {
-    throw new Error('사용자 생성 실패');
-  }
-
-  // Manually insert into profiles table (trigger was removed)
+  // Direct insert into profiles table without Auth
   const { data: profile, error: insertError } = await supabase
     .from('profiles')
     .insert({
-      id: authData.user.id,
       email: input.email && input.email.trim() !== '' ? input.email : null,
       name: input.name,
       phone: input.phone && input.phone.trim() !== '' ? input.phone : null,
@@ -180,8 +153,15 @@ export async function createParticipant(input: CreateParticipantInput): Promise<
     .select()
     .single();
 
-  if (insertError || !profile) {
-    throw new Error(`프로필 생성 실패: ${insertError?.message}`);
+  console.log('Insert result:', { profile, insertError });
+
+  if (insertError) {
+    console.error('Insert error:', insertError);
+    throw new Error(`프로필 생성 실패: ${insertError.message}`);
+  }
+
+  if (!profile) {
+    throw new Error('프로필 생성 실패: 데이터가 반환되지 않았습니다');
   }
 
   return {
