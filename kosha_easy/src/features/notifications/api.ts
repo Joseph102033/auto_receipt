@@ -152,8 +152,13 @@ export async function sendNotification(request: SendNotificationRequest): Promis
 
   // Get current user info for sender
   const { data: { user } } = await supabase.auth.getUser();
-  const senderId = user?.id || 'system';
-  const senderName = user?.email || '시스템';
+
+  if (!user) {
+    throw new Error('로그인이 필요합니다');
+  }
+
+  const senderId = user.id;
+  const senderName = user.email || '시스템';
 
   // Fetch recipient info
   const { data: recipients, error: recipientsError } = await supabase
