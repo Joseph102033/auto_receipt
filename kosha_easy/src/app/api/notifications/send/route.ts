@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createPureClient } from '@/lib/supabase/server';
+import { sendSMS } from '@/lib/sms/solapi';
 
 interface SendNotificationRequest {
   recipientIds: string[];
@@ -96,24 +97,23 @@ export async function POST(request: NextRequest) {
 
         if (phoneNumbers.length > 0) {
           try {
-            const smsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sms/send`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                to: phoneNumbers,
-                message,
-              }),
+            console.log('Sending SMS to:', phoneNumbers);
+            const smsResult = await sendSMS({
+              to: phoneNumbers,
+              message,
             });
-
-            if (!smsResponse.ok) {
-              console.error('Failed to send SMS:', await smsResponse.text());
-            }
+            console.log('SMS sent successfully:', {
+              groupId: smsResult.groupId,
+              total: smsResult.count.total,
+              success: smsResult.count.sentSuccess,
+              failed: smsResult.count.sentFailed,
+            });
           } catch (smsError) {
             console.error('Failed to send SMS:', smsError);
             // Don't throw - notification was saved, just SMS failed
           }
+        } else {
+          console.log('No valid phone numbers found for SMS');
         }
       }
 
