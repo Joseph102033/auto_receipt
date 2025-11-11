@@ -61,17 +61,64 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No valid recipients found' }, { status: 404 });
     }
 
-    // Create notifications for each recipient
-    const notifications = recipients.map((recipient) => ({
-      type,
-      status: 'unread',
-      priority,
-      title,
-      message,
-      recipient_id: recipient.id,
-      sender_id: user.id,
-      round_id: roundId || null,
-    }));
+    // Get round info if roundId is provided
+    let roundInfo: any = null;
+    if (roundId) {
+      const { data: round } = await supabase
+        .from('rounds')
+        .select('title, end_date')
+        .eq('id', roundId)
+        .single();
+      roundInfo = round;
+    }
+
+    // Helper function to replace template variables
+    const replaceTemplateVariables = (template: string, recipient: any, round: any) => {
+      let result = template;
+
+      // Replace participant variables
+      result = result.replace(/\{\{participantName\}\}/g, recipient.name || '회원');
+
+      // Replace round variables
+      if (round) {
+        result = result.replace(/\{\{roundTitle\}\}/g, round.title || '');
+
+        // Calculate days left
+        if (round.end_date) {
+          const endDate = new Date(round.end_date);
+          const today = new Date();
+          const daysLeft = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+          result = result.replace(/\{\{daysLeft\}\}/g, daysLeft.toString());
+
+          // Format deadline
+          const deadline = endDate.toLocaleDateString('ko-KR', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+          });
+          result = result.replace(/\{\{deadline\}\}/g, deadline);
+        }
+      }
+
+      return result;
+    };
+
+    // Create notifications for each recipient with personalized messages
+    const notifications = recipients.map((recipient) => {
+      const personalizedTitle = replaceTemplateVariables(title, recipient, roundInfo);
+      const personalizedMessage = replaceTemplateVariables(message, recipient, roundInfo);
+
+      return {
+        type,
+        status: 'unread',
+        priority,
+        title: personalizedTitle,
+        message: personalizedMessage,
+        recipient_id: recipient.id,
+        sender_id: user.id,
+        round_id: roundId || null,
+      };
+    });
 
     // Insert notifications using service role client to bypass RLS
     try {
@@ -91,23 +138,30 @@ export async function POST(request: NextRequest) {
 
       // Send actual SMS if type is 'sms'
       if (type === 'sms') {
-        const phoneNumbers = recipients
-          .map((r) => r.phone)
-          .filter((phone) => phone && phone.trim() !== '');
+        // Send personalized SMS to each recipient
+        const recipientsWithPhone = recipients.filter((r) => r.phone && r.phone.trim() !== '');
 
-        if (phoneNumbers.length > 0) {
+        if (recipientsWithPhone.length > 0) {
           try {
-            console.log('Sending SMS to:', phoneNumbers);
-            const smsResult = await sendSMS({
-              to: phoneNumbers,
-              message,
-            });
-            console.log('SMS sent successfully:', {
-              groupId: smsResult.groupId,
-              total: smsResult.count.total,
-              success: smsResult.count.sentSuccess,
-              failed: smsResult.count.sentFailed,
-            });
+            console.log(`Sending personalized SMS to ${recipientsWithPhone.length} recipients`);
+
+            // Send SMS to each recipient with their personalized message
+            for (const recipient of recipientsWithPhone) {
+              const personalizedMessage = replaceTemplateVariables(message, recipient, roundInfo);
+
+              try {
+                await sendSMS({
+                  to: recipient.phone,
+                  message: personalizedMessage,
+                });
+                console.log(`SMS sent to ${recipient.name} (${recipient.phone})`);
+              } catch (smsError) {
+                console.error(`Failed to send SMS to ${recipient.name}:`, smsError);
+                // Continue with next recipient even if one fails
+              }
+            }
+
+            console.log('All SMS sending attempts completed');
           } catch (smsError) {
             console.error('Failed to send SMS:', smsError);
             // Don't throw - notification was saved, just SMS failed
