@@ -49,11 +49,19 @@ export interface SolapiBatchResponse {
 }
 
 /**
- * Get authentication signature for Solapi API
+ * Generate random salt for Solapi API authentication
  */
-function getSignature(apiKey: string, apiSecret: string, timestamp: string): string {
+function generateSalt(): string {
+  return crypto.randomBytes(32).toString('hex');
+}
+
+/**
+ * Get authentication signature for Solapi API
+ * Signature = HMAC-SHA256(dateTime + salt, apiSecret)
+ */
+function getSignature(apiSecret: string, dateTime: string, salt: string): string {
   const hmac = crypto.createHmac('sha256', apiSecret);
-  hmac.update(timestamp + apiKey);
+  hmac.update(dateTime + salt);
   return hmac.digest('hex');
 }
 
@@ -106,8 +114,9 @@ export async function sendSMS(params: SendSMSParams): Promise<SolapiBatchRespons
   });
 
   // Generate authentication
-  const timestamp = Date.now().toString();
-  const signature = getSignature(apiKey, apiSecret, timestamp);
+  const dateTime = new Date().toISOString(); // ISO 8601 format
+  const salt = generateSalt();
+  const signature = getSignature(apiSecret, dateTime, salt);
 
   // Prepare request body
   const requestBody = {
@@ -119,7 +128,7 @@ export async function sendSMS(params: SendSMSParams): Promise<SolapiBatchRespons
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${timestamp}, signature=${signature}`,
+        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -168,8 +177,9 @@ export async function sendSingleSMS(params: SendSMSParams): Promise<SolapiRespon
     message.subject = params.subject;
   }
 
-  const timestamp = Date.now().toString();
-  const signature = getSignature(apiKey, apiSecret, timestamp);
+  const dateTime = new Date().toISOString(); // ISO 8601 format
+  const salt = generateSalt();
+  const signature = getSignature(apiSecret, dateTime, salt);
 
   const requestBody = {
     message,
@@ -180,7 +190,7 @@ export async function sendSingleSMS(params: SendSMSParams): Promise<SolapiRespon
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${timestamp}, signature=${signature}`,
+        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`,
       },
       body: JSON.stringify(requestBody),
     });
@@ -211,14 +221,15 @@ export async function getSMSBalance(): Promise<number> {
     throw new Error('Solapi configuration is missing');
   }
 
-  const timestamp = Date.now().toString();
-  const signature = getSignature(apiKey, apiSecret, timestamp);
+  const dateTime = new Date().toISOString(); // ISO 8601 format
+  const salt = generateSalt();
+  const signature = getSignature(apiSecret, dateTime, salt);
 
   try {
     const response = await fetch('https://api.solapi.com/cash/v1/balance', {
       method: 'GET',
       headers: {
-        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${timestamp}, signature=${signature}`,
+        Authorization: `HMAC-SHA256 apiKey=${apiKey}, date=${dateTime}, salt=${salt}, signature=${signature}`,
       },
     });
 
