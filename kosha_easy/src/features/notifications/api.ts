@@ -145,91 +145,33 @@ export async function deleteNotification(id: string): Promise<void> {
 }
 
 /**
- * Send notification
+ * Send notification via server API
  */
 export async function sendNotification(request: SendNotificationRequest): Promise<Notification[]> {
-  const supabase = createClient();
+  // Call server API to send notification with proper RLS bypass
+  const response = await fetch('/api/notifications/send', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      recipientIds: request.recipientIds,
+      type: request.type,
+      priority: request.priority || 'medium',
+      title: request.title,
+      message: request.message,
+      roundId: request.roundId,
+    }),
+  });
 
-  // Get current user info for sender
-  const { data: { user } } = await supabase.auth.getUser();
-
-  if (!user) {
-    throw new Error('로그인이 필요합니다');
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(`알림 발송 실패: ${errorData.error || response.statusText}`);
   }
 
-  const senderId = user.id;
-  const senderName = user.email || '시스템';
+  const result = await response.json();
 
-  // Fetch recipient info
-  const { data: recipients, error: recipientsError } = await supabase
-    .from('profiles')
-    .select('id, name, email')
-    .in('id', request.recipientIds);
-
-  if (recipientsError) {
-    throw new Error(`수신자 정보 조회 실패: ${recipientsError.message}`);
-  }
-
-  // Get round title if roundId is provided
-  let roundTitle = '';
-  if (request.roundId) {
-    const { data: round } = await supabase
-      .from('rounds')
-      .select('title')
-      .eq('id', request.roundId)
-      .single();
-    roundTitle = round?.title || '';
-  }
-
-  // Create notifications for each recipient
-  const notifications = (recipients || []).map((recipient: any) => ({
-    type: request.type,
-    status: 'unread',
-    priority: request.priority || 'medium',
-    title: request.title,
-    message: request.message,
-    recipient_id: recipient.id,
-    sender_id: senderId,
-    round_id: request.roundId || null,
-  }));
-
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert(notifications)
-    .select();
-
-  if (error) {
-    throw new Error(`알림 발송 실패: ${error.message}`);
-  }
-
-  // Send actual SMS if type is 'sms'
-  if (request.type === 'sms') {
-    const phoneNumbers = (recipients || [])
-      .map((r: any) => r.phone)
-      .filter((phone: string) => phone && phone.trim() !== '');
-
-    if (phoneNumbers.length > 0) {
-      try {
-        await fetch('/api/sms/send', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            to: phoneNumbers,
-            message: request.message,
-          }),
-        });
-      } catch (smsError) {
-        console.error('Failed to send SMS:', smsError);
-        // Don't throw - notification was saved, just SMS failed
-      }
-    }
-  }
-
-  // TODO: Send actual email based on type
-
-  return (data || []).map((item: any) => ({
+  return (result.notifications || []).map((item: any) => ({
     id: item.id,
     type: item.type,
     status: item.status,
