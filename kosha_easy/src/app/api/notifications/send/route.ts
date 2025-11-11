@@ -6,7 +6,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createPureClient } from '@/lib/supabase/server';
 
 interface SendNotificationRequest {
   recipientIds: string[];
@@ -72,55 +72,64 @@ export async function POST(request: NextRequest) {
       round_id: roundId || null,
     }));
 
-    // Insert notifications using service role to bypass RLS
-    const { data: createdNotifications, error: insertError } = await supabase
-      .from('notifications')
-      .insert(notifications)
-      .select();
+    // Insert notifications using service role client to bypass RLS
+    try {
+      const adminClient = await createPureClient();
+      const { data: createdNotifications, error: insertError } = await adminClient
+        .from('notifications')
+        .insert(notifications)
+        .select();
 
-    if (insertError) {
-      console.error('Failed to insert notifications:', insertError);
+      if (insertError) {
+        console.error('Failed to insert notifications:', insertError);
+        return NextResponse.json(
+          { error: `Failed to create notifications: ${insertError.message}` },
+          { status: 500 }
+        );
+      }
+
+      // Send actual SMS if type is 'sms'
+      if (type === 'sms') {
+        const phoneNumbers = recipients
+          .map((r) => r.phone)
+          .filter((phone) => phone && phone.trim() !== '');
+
+        if (phoneNumbers.length > 0) {
+          try {
+            const smsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sms/send`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                to: phoneNumbers,
+                message,
+              }),
+            });
+
+            if (!smsResponse.ok) {
+              console.error('Failed to send SMS:', await smsResponse.text());
+            }
+          } catch (smsError) {
+            console.error('Failed to send SMS:', smsError);
+            // Don't throw - notification was saved, just SMS failed
+          }
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        message: 'Notifications sent successfully',
+        count: createdNotifications?.length || 0,
+        notifications: createdNotifications,
+      });
+    } catch (clientError) {
+      console.error('Failed to create admin client or insert notifications:', clientError);
       return NextResponse.json(
-        { error: `Failed to create notifications: ${insertError.message}` },
+        { error: 'Failed to create notifications' },
         { status: 500 }
       );
     }
-
-    // Send actual SMS if type is 'sms'
-    if (type === 'sms') {
-      const phoneNumbers = recipients
-        .map((r) => r.phone)
-        .filter((phone) => phone && phone.trim() !== '');
-
-      if (phoneNumbers.length > 0) {
-        try {
-          const smsResponse = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/sms/send`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              to: phoneNumbers,
-              message,
-            }),
-          });
-
-          if (!smsResponse.ok) {
-            console.error('Failed to send SMS:', await smsResponse.text());
-          }
-        } catch (smsError) {
-          console.error('Failed to send SMS:', smsError);
-          // Don't throw - notification was saved, just SMS failed
-        }
-      }
-    }
-
-    return NextResponse.json({
-      success: true,
-      message: 'Notifications sent successfully',
-      count: createdNotifications?.length || 0,
-      notifications: createdNotifications,
-    });
   } catch (error: any) {
     console.error('Send notification error:', error);
 
