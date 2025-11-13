@@ -1,0 +1,101 @@
+# Create a UI-only mockup covering all key pages and components
+
+**Task ID:** T-002
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 8/10
+**Urgency:** 9/10
+**Dependencies:** None
+
+## Description
+
+# T-002: UI-Only Mockup for Document Submission Management System
+
+## 1. Product Summary
+차수별 참석자의 문서를 효율적으로 수집·관리하고, 마감 기한에 맞춰 리마인드 알림을 제공하여 제출률을 높이는 시스템
+
+## 2. Target Users
+- 관리자 (Round Manager)
+- 참여자 (Document Submitter)
+
+## 3. Design Mood
+- Professional, Clean, Intuitive, Mobile-first
+
+## 4. Color Palette
+참조: T-001 디자인 시스템에서 정의한 Primary, Secondary, Accent, Grayscale
+
+## 5. UI Guidelines
+- 일관된 마진·패딩 기준
+- 명확한 타이포그래피 계층
+- Accessible 컬러 대비
+- 아이콘 사용: lucide-react
+
+## 6. User Journey
+로그인 → 차수 목록 확인 → 문서 제출 페이지 이동 → 문서 업로드 → 제출 확인 → 제출 현황 확인
+
+## 7. Common Components
+- Navbar (로고, 사용자 메뉴)
+- Sidebar (Admin 전용)
+- Button (Primary, Secondary, Danger)
+- File Upload Field
+- Alert / Toast
+
+## 8. Sitemap (페이지 경로 + 역할)
+- /login (All)
+- /admin/rounds (관리자)
+- /admin/rounds/[id] (관리자)
+- /admin/rounds/[id]/dashboard (관리자)
+- /participant/rounds (참여자)
+- /participant/rounds/[id]/submit (참여자)
+
+## 9. Page Implementations
+- /login:
+  - Core Purpose: 인증
+  - Key Components: Email Input, Password Input, Login Button
+  - Layout: Centered Form
+
+- /admin/rounds:
+  - Core Purpose: Round 목록 관리
+  - Key Components: Table, [+ 새로 만들기] 버튼
+  - Layout: Header + Table
+
+- /admin/rounds/[id]/dashboard:
+  - Core Purpose: 제출 현황 대시보드
+  - Key Components: Status Cards, Participant List, 알림 버튼
+  - Layout: Grid + Table
+
+- /participant/rounds:
+  - Core Purpose: 자신이 속한 Round 목록
+  - Key Components: Card List
+  - Layout: Responsive Grid
+
+- /participant/rounds/[id]/submit:
+  - Core Purpose: 문서 제출
+  - Key Components: File Upload, ‘해당 없음’ Checkbox, Submit Button
+  - Layout: Form Page
+
+## 10. Layout Components
+- Applicable Routes: Admin 라우트 (/admin/*), Participant 라우트 (/participant/*)
+- Core Components: Header, Sidebar (Admin), Bottom Nav (Mobile)
+- Responsive Behavior: 
+  - <768px: Sidebar → Drawer
+  - ≥768px: Permanent Sidebar
+
+---
+
+Deliver a set of high-fidelity mockups (or annotated wireframes) in Figma or as static images, annotated with component names and layout specs.
+
+MUST Guidelines:
+- only implement what is written in prompt.
+- tidy first.
+- Implement UI-only mockup only. Use **dummy data** for now.
+- Be sure every routing works.
+-Be sure root route works.
+
+
+  
+
+---
+
+**Created:** 2025-11-04T04:13:25.579Z
+**Updated:** 2025-11-04T04:13:25.579Z

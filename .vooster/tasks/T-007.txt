@@ -1,0 +1,29 @@
+# 사용자 권한 및 인증 강화
+
+**Task ID:** T-007
+**Status:** BACKLOG
+**Importance:** SHOULD
+**Complexity:** 6/10
+**Urgency:** 7/10
+**Dependencies:** T-006
+
+## Description
+
+## 요구사항
+* 관리자와 참여자 권한 분리 및 접근 제어
+* 민감 데이터에 대한 권한 검사 강화
+* Supabase Auth 기반 로그인 흐름 보완
+
+## 구현 세부사항
+* 인증 미들웨어 추가로 API 엔드포인트 보호
+* RBAC(Role-Based Access Control) 설계 및 권한 테이블 추가
+* 토큰 갱신 로직 및 만료 처리 구현
+
+## 테스트 전략
+* 관리자/참여자 권한 테스트 케이스 작성
+* 토큰 만료 및 갱신 시나리오 검증
+
+---
+
+**Created:** 2025-11-04T06:21:16.080Z
+**Updated:** 2025-11-04T06:21:16.080Z

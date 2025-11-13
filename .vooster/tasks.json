@@ -1,0 +1,106 @@
+{
+  "totalCount": 10,
+  "downloadedAt": "2025-11-06T14:32:31.153Z",
+  "tasks": [
+    {
+      "taskId": "T-002",
+      "summary": "Create a UI-only mockup covering all key pages and components",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 8,
+      "urgency": 9,
+      "createdAt": "2025-11-04T04:13:25.579Z",
+      "updatedAt": "2025-11-04T04:13:25.579Z"
+    },
+    {
+      "taskId": "T-003",
+      "summary": "Scaffold the Admin Round Management feature (CRUD)",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 8,
+      "urgency": 8,
+      "createdAt": "2025-11-04T04:13:25.579Z",
+      "updatedAt": "2025-11-04T04:13:25.579Z"
+    },
+    {
+      "taskId": "T-001",
+      "summary": "Define the design system’s color palette and typography settings",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 8,
+      "urgency": 10,
+      "createdAt": "2025-11-04T04:13:25.579Z",
+      "updatedAt": "2025-11-06T12:43:16.277Z"
+    },
+    {
+      "taskId": "T-004",
+      "summary": "문자 및 이메일 알림 시스템 설계",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 8,
+      "urgency": 8,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-005",
+      "summary": "문자 및 이메일 알림 기능 구현 및 통합",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 8,
+      "urgency": 8,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-006",
+      "summary": "파일 업로드 안정성 및 용량 제한 관리",
+      "status": "BACKLOG",
+      "importance": "SHOULD",
+      "complexity": 6,
+      "urgency": 7,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-007",
+      "summary": "사용자 권한 및 인증 강화",
+      "status": "BACKLOG",
+      "importance": "SHOULD",
+      "complexity": 6,
+      "urgency": 7,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-008",
+      "summary": "UI 디자인 및 반응형 레이아웃 마무리",
+      "status": "BACKLOG",
+      "importance": "SHOULD",
+      "complexity": 5,
+      "urgency": 6,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-009",
+      "summary": "테스트 및 버그 수정",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 7,
+      "urgency": 9,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    },
+    {
+      "taskId": "T-010",
+      "summary": "배포 및 운영 환경 셋업",
+      "status": "BACKLOG",
+      "importance": "MUST",
+      "complexity": 6,
+      "urgency": 8,
+      "createdAt": "2025-11-04T06:21:16.080Z",
+      "updatedAt": "2025-11-04T06:21:16.080Z"
+    }
+  ]
+}

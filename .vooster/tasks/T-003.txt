@@ -1,0 +1,55 @@
+# Scaffold the Admin Round Management feature (CRUD)
+
+**Task ID:** T-003
+**Status:** BACKLOG
+**Importance:** MUST
+**Complexity:** 8/10
+**Urgency:** 8/10
+**Dependencies:** None
+
+## Description
+
+# T-003: Implement Admin Round Management Feature
+
+## 1. User Journey
+로그인 → 차수 목록 확인 → [+ 새로 만들기] 클릭 → 폼 입력 → 저장 → 차수 목록 갱신
+
+## 2. Functional Requirements
+- Round 목록 조회 (Read)
+- 새 Round 생성 (Create)
+  • 필드: 이름, 시작일, 종료일, 참석자 선택, 필수 문서 목록
+- Round 수정 (Update)
+- Round 삭제 (Delete)
+- 입력 검증 (필수 필드, 날짜 유효성)
+- 화면 로딩 및 에러 상태 처리
+
+## 3. Data Flow
+1. 사용자 입력 폼 →  
+2. `features/rounds/api.ts`의 `createRound`/`updateRound` 호출 (stubbed fetch) →  
+3. React Query mutation →  
+4. 성공 시 캐시 갱신 → Round 목록 자동 갱신
+
+## 4. Deliverables
+- Next.js App Router page: `app/admin/rounds/page.tsx` + `app/admin/rounds/[id]/page.tsx`
+- Components in `features/rounds/components/`:
+  • `RoundList.tsx`, `RoundForm.tsx`, `RoundItem.tsx`
+- API stubs in `features/rounds/api.ts`
+- React Query hooks in `features/rounds/hooks/useRounds.ts`
+- Zod schemas in `features/rounds/schema.ts`
+- TypeScript types in `features/rounds/types.ts`
+- Tailwind + shadcn/ui components for form controls and tables
+
+Please scaffold all files with clear comments indicating where to implement real API integration later.
+
+MUST Guidelines:
+- only implement what is written in prompt.
+- tidy first.
+
+
+
+  
+
+---
+
+**Created:** 2025-11-04T04:13:25.579Z
+**Updated:** 2025-11-04T04:13:25.579Z
