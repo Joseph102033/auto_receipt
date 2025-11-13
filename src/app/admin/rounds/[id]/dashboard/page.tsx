@@ -200,8 +200,8 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
       title: round.title,
       startDate: format(new Date(round.startDate), 'yyyy-MM-dd'),
       endDate: format(new Date(round.endDate), 'yyyy-MM-dd'),
-      budgetCodeTransport: round.budgetCodeTransport,
-      budgetCodeAccommodation: round.budgetCodeAccommodation,
+      budgetCodeTransport: round.budgetCode2,
+      budgetCodeAccommodation: round.budgetCode1,
     });
   };
 
@@ -348,7 +348,7 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
                 {isDownloadingReceipts ? '다운로드 중...' : '영수증 파일 일괄 다운로드'}
               </Button>
             </div>
-            {(!round.budgetCodeTransport && !round.budgetCodeAccommodation) && (
+            {(!round.budgetCode2 && !round.budgetCode1) && (
               <p className="text-sm text-muted-foreground mt-2">
                 * 예산 코드가 설정되지 않았습니다. 차수 수정에서 예산 코드를 입력하세요.
               </p>
