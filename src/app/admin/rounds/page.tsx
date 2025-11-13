@@ -40,8 +40,8 @@ export default function AdminRoundsPage() {
         description: data.description,
         startDate: data.startDate,
         endDate: data.endDate,
-        budgetCodeTransport: data.budgetCodeTransport,
-        budgetCodeAccommodation: data.budgetCodeAccommodation,
+        budgetCode2: data.budgetCode2,
+        budgetCode1: data.budgetCode1,
         participants: data.participants,
         requiredDocuments: data.requiredDocuments,
       });

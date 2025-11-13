@@ -200,8 +200,8 @@ export default function AdminRoundDashboardPage(props: { params: Promise<{ id: s
       title: round.title,
       startDate: format(new Date(round.startDate), 'yyyy-MM-dd'),
       endDate: format(new Date(round.endDate), 'yyyy-MM-dd'),
-      budgetCodeTransport: round.budgetCode2,
-      budgetCodeAccommodation: round.budgetCode1,
+      budgetCode2: round.budgetCode2,
+      budgetCode1: round.budgetCode1,
     });
   };
 

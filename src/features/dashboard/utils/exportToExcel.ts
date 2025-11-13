@@ -130,8 +130,8 @@ export function exportReceiptSummaryToExcel(
     title: string;
     startDate: string;
     endDate: string;
-    budgetCodeTransport?: string;
-    budgetCodeAccommodation?: string;
+    budgetCode2?: string;
+    budgetCode1?: string;
   }
 ) {
   // Prepare data rows
@@ -150,7 +150,7 @@ export function exportReceiptSummaryToExcel(
         차수명: roundInfo.title,
         날짜: dateRange,
         구분: '여비',
-        예산코드: roundInfo.budgetCodeTransport || '',
+        예산코드: roundInfo.budgetCode2 || '',
         참가자명: item.participantName,
         금액: item.amountTransport,
       });
@@ -163,7 +163,7 @@ export function exportReceiptSummaryToExcel(
         차수명: roundInfo.title,
         날짜: dateRange,
         구분: '숙박',
-        예산코드: roundInfo.budgetCodeAccommodation || '',
+        예산코드: roundInfo.budgetCode1 || '',
         참가자명: item.participantName,
         금액: item.amountAccommodation,
       });
