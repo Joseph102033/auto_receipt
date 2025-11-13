@@ -116,15 +116,23 @@ export default function AdminRoundsPage() {
         )}
 
         {/* Send Notification Dialog */}
-        {notificationDialog.roundId && (
-          <SendNotificationDialog
-            open={notificationDialog.open}
-            onOpenChange={(open) => setNotificationDialog({ ...notificationDialog, open })}
-            participants={participants}
-            roundId={notificationDialog.roundId}
-            roundTitle={notificationDialog.roundTitle}
-          />
-        )}
+        {notificationDialog.roundId && (() => {
+          // Filter participants for the selected round
+          const selectedRound = rounds.find(r => r.id === notificationDialog.roundId);
+          const roundParticipants = selectedRound
+            ? participants.filter(p => selectedRound.participants?.includes(p.id))
+            : [];
+
+          return (
+            <SendNotificationDialog
+              open={notificationDialog.open}
+              onOpenChange={(open) => setNotificationDialog({ ...notificationDialog, open })}
+              participants={roundParticipants}
+              roundId={notificationDialog.roundId}
+              roundTitle={notificationDialog.roundTitle}
+            />
+          );
+        })()}
       </div>
     </AdminLayout>
   );
