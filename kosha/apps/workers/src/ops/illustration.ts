@@ -163,10 +163,10 @@ export async function generateIllustration(
     const prompt = await generateImagePrompt(input, env);
     console.log('🎨 Generating illustration with Gemini 2.5 Flash Image...');
 
-    // Call Google Gemini 2.5 Flash Image API
-    // Model: gemini-2.0-flash-preview-image-generation
+    // Call Google Gemini 2.0 Flash Image API
+    // Model: gemini-2.0-flash-exp-image-generation (updated 2025-11)
     const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-preview-image-generation:generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent',
       {
         method: 'POST',
         headers: {
