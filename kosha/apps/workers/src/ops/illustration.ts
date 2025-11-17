@@ -145,8 +145,85 @@ function generateImagePromptWithEnglish(input: OPSInput, englishDescription: str
 }
 
 /**
- * Generate illustration using Google Gemini 2.5 Flash Image API
- * Returns base64-encoded image (data URL) or null if generation fails
+ * List of Gemini image generation models to try (in order of preference)
+ * Auto-fallback: tries each model until one succeeds
+ */
+const GEMINI_IMAGE_MODELS = [
+  'gemini-2.0-flash-exp-image-generation',    // Current (2025-11)
+  'gemini-2.0-flash-preview-image-generation', // Previous version
+  'gemini-2.5-flash-image-generation',         // Alternative
+  'gemini-flash-image-generation',             // Fallback
+];
+
+/**
+ * Try to generate image with a specific Gemini model
+ */
+async function tryGenerateWithModel(
+  modelName: string,
+  prompt: string,
+  apiKey: string
+): Promise<string | null> {
+  try {
+    console.log(`🔄 Trying model: ${modelName}`);
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              role: 'user',
+              parts: [{ text: prompt }],
+            },
+          ],
+          generationConfig: {
+            responseModalities: ['TEXT', 'IMAGE'],
+            temperature: 0.4,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.warn(`⚠️ Model ${modelName} failed: ${response.status} - ${errorText.substring(0, 200)}`);
+      return null;
+    }
+
+    const result = await response.json();
+
+    // Extract image data from response
+    if (result.candidates && result.candidates.length > 0) {
+      const candidate = result.candidates[0];
+      const imagePart = candidate.content?.parts?.find(
+        (part: any) => part.inlineData?.mimeType?.startsWith('image/')
+      );
+
+      if (imagePart?.inlineData?.data) {
+        const mimeType = imagePart.inlineData.mimeType || 'image/png';
+        const base64Data = imagePart.inlineData.data;
+        console.log(`✅ Success with model: ${modelName}`);
+        return `data:${mimeType};base64,${base64Data}`;
+      }
+    }
+
+    console.warn(`⚠️ Model ${modelName} returned no image data`);
+    return null;
+  } catch (error) {
+    console.warn(`⚠️ Model ${modelName} error:`, error);
+    return null;
+  }
+}
+
+/**
+ * Generate illustration using Google Gemini Image API with auto-fallback
+ * Tries multiple models in order until one succeeds
+ * Returns base64-encoded image (data URL) or null if all models fail
  * Free tier: 500 images/day via Google AI Studio
  */
 export async function generateIllustration(
@@ -161,65 +238,24 @@ export async function generateIllustration(
     }
 
     const prompt = await generateImagePrompt(input, env);
-    console.log('🎨 Generating illustration with Gemini 2.5 Flash Image...');
+    console.log('🎨 Generating illustration with Gemini (auto-fallback enabled)');
 
-    // Call Google Gemini 2.0 Flash Image API
-    // Model: gemini-2.0-flash-exp-image-generation (updated 2025-11)
-    const response = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp-image-generation:generateContent',
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-goog-api-key': env.GEMINI_API_KEY,
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                {
-                  text: prompt,
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            responseModalities: ['TEXT', 'IMAGE'], // MUST include TEXT with IMAGE for Gemini
-            temperature: 0.4, // Lower temperature for consistent safety illustrations
-          },
-        }),
-      }
-    );
+    // Get preferred model from env or use default list
+    const preferredModel = env.GEMINI_IMAGE_MODEL;
+    const modelsToTry = preferredModel
+      ? [preferredModel, ...GEMINI_IMAGE_MODELS.filter(m => m !== preferredModel)]
+      : GEMINI_IMAGE_MODELS;
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Gemini API error:', response.status, errorText);
-      return null;
-    }
-
-    const result = await response.json();
-
-    // Extract image data from Gemini response
-    // Response structure: { candidates: [{ content: { parts: [{ inlineData: { mimeType, data } }] } }] }
-    if (result.candidates && result.candidates.length > 0) {
-      const candidate = result.candidates[0];
-
-      // Find image part in response
-      const imagePart = candidate.content?.parts?.find(
-        (part: any) => part.inlineData?.mimeType?.startsWith('image/')
-      );
-
-      if (imagePart?.inlineData?.data) {
-        const mimeType = imagePart.inlineData.mimeType || 'image/png';
-        const base64Data = imagePart.inlineData.data;
-
-        console.log('✅ Illustration generated successfully');
-        return `data:${mimeType};base64,${base64Data}`;
+    // Try each model until one succeeds
+    for (const modelName of modelsToTry) {
+      const result = await tryGenerateWithModel(modelName, prompt, env.GEMINI_API_KEY);
+      if (result) {
+        return result; // Success!
       }
     }
 
-    console.error('❌ No image found in Gemini response');
+    // All models failed
+    console.error('❌ All Gemini models failed. Tried:', modelsToTry.join(', '));
     return null;
   } catch (error) {
     console.error('❌ Illustration generation error:', error);

@@ -46,6 +46,7 @@ export interface Env {
   ACCESS_KEY?: string;
   EMAIL_API_KEY?: string;
   GEMINI_API_KEY?: string;
+  GEMINI_IMAGE_MODEL?: string; // Optional: override default Gemini image model
 }
 
 export default {
