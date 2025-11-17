@@ -1,7 +1,7 @@
 # Cloudflare Pages routing configuration
 # Public OPS pages are served by Pages (client-side rendered)
-# Dynamic route: all /p/* requests serve the [slug] page (without .html extension)
-/p/* /p/[slug] 200
+# Dynamic route: all /p/* requests serve the [slug].html page
+/p/* /p/[slug].html 200
 
 # API routes are proxied to Workers
 /api/* https://safe-ops-studio-workers.yosep102033.workers.dev/api/:splat 200
