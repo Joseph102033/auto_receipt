@@ -1,7 +1,8 @@
 # Cloudflare Pages routing configuration
-# Public OPS pages are served by Pages (client-side rendered)
-# Dynamic route: all /p/* requests serve the [slug].html page
-/p/* /p/[slug].html 200
 
 # API routes are proxied to Workers
 /api/* https://safe-ops-studio-workers.yosep102033.workers.dev/api/:splat 200
+
+# Public OPS pages fallback to 404 which is handled by Next.js client-side routing
+# Note: Direct /p/* access will show 404 briefly before client-side routing kicks in
+# This is a limitation of Next.js static export with Cloudflare Pages

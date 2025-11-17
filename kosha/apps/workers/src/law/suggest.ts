@@ -108,22 +108,27 @@ export async function suggestLaws(
   const ftsResults = await getFTS5Candidates(db, searchText, ftsLimit);
 
   // Step 2: Calculate rule-based scores for each candidate
-  const scoredLaws = ftsResults.map((result) => {
-    const ruleScore = calculateRuleScore(result.law, params);
+  const scoredLaws = ftsResults
+    .map((result) => {
+      const ruleScore = calculateRuleScore(result.law, params);
 
-    // Combine scores using weighted formula: score = α*bm25 + β*rule_score
-    const alpha = lawRules.scoring_parameters.alpha;
-    const beta = lawRules.scoring_parameters.beta;
-    const totalScore = alpha * result.bm25_score + beta * ruleScore.score;
+      // Combine scores using weighted formula: score = α*bm25 + β*rule_score
+      const alpha = lawRules.scoring_parameters.alpha;
+      const beta = lawRules.scoring_parameters.beta;
+      const totalScore = alpha * result.bm25_score + beta * ruleScore.score;
 
-    return {
-      law: result.law,
-      total_score: totalScore,
-      bm25_score: result.bm25_score,
-      rule_score: ruleScore.score,
-      matched_rules: ruleScore.matches,
-    };
-  });
+      return {
+        law: result.law,
+        total_score: totalScore,
+        bm25_score: result.bm25_score,
+        rule_score: ruleScore.score,
+        matched_rules: ruleScore.matches,
+      };
+    })
+    // CRITICAL FILTER: Only include laws with rule_score > 0
+    // This ensures that BOTH input and law contain matching keywords
+    // Without this filter, unrelated laws rank high on BM25 alone
+    .filter((scored) => scored.rule_score > 0);
 
   // Step 3: Sort by total score (descending) and take top N
   // For deterministic results, use secondary sort by law ID
@@ -234,31 +239,28 @@ function calculateRuleScore(
     let ruleScore = 0;
 
     // Check keyword matches
+    // IMPORTANT: Only score if BOTH input and law contain the keyword
+    // This prevents unrelated laws from getting partial scores
     for (const keyword of rule.keywords) {
       const keywordRegex = new RegExp(keyword, 'gi');
       const lawMatches = lawSearchText.match(keywordRegex);
       const inputMatches = inputText.match(keywordRegex);
 
       if (lawMatches && inputMatches) {
-        // Both law and input contain this keyword
+        // Both law and input contain this keyword - strong relevance signal
         ruleScore += 1.0 * rule.weight;
         ruleMatches.push({
           type: 'keyword',
           pattern: keyword,
           matches: Array.from(new Set([...lawMatches, ...inputMatches])), // Deduplicate
         });
-      } else if (lawMatches) {
-        // Only law contains keyword (partial match)
-        ruleScore += 0.3 * rule.weight;
-        ruleMatches.push({
-          type: 'keyword',
-          pattern: keyword,
-          matches: lawMatches,
-        });
       }
+      // REMOVED: Partial scoring for law-only matches
+      // This was causing unrelated laws (e.g., "stairs", "entrance") to rank highly
     }
 
     // Check regex matches
+    // IMPORTANT: Only score if BOTH input and law match the pattern
     for (const pattern of rule.regex) {
       try {
         const regex = new RegExp(pattern, 'gi');
@@ -266,22 +268,16 @@ function calculateRuleScore(
         const inputMatches = inputText.match(regex);
 
         if (lawMatches && inputMatches) {
-          // Both law and input match this pattern
+          // Both law and input match this pattern - strong relevance signal
           ruleScore += 1.5 * rule.weight; // Regex matches score higher
           ruleMatches.push({
             type: 'regex',
             pattern: pattern,
             matches: Array.from(new Set([...lawMatches, ...inputMatches])),
           });
-        } else if (lawMatches) {
-          // Only law matches pattern
-          ruleScore += 0.5 * rule.weight;
-          ruleMatches.push({
-            type: 'regex',
-            pattern: pattern,
-            matches: lawMatches,
-          });
         }
+        // REMOVED: Partial scoring for law-only regex matches
+        // This was causing unrelated laws to rank highly
       } catch (e) {
         // Invalid regex, skip
         console.warn(`Invalid regex pattern: ${pattern}`, e);
