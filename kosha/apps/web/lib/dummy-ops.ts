@@ -6,6 +6,20 @@
 import type { OPSDocument, OPSFormData } from './schemas/ops';
 
 /**
+ * Format date to Korean format without locale dependency
+ * Prevents hydration errors caused by different system locales
+ */
+function formatDateKorean(dateString: string): string {
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+
+  const monthNames = ['1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
+  return `${year}년 ${monthNames[month - 1]} ${day}일`;
+}
+
+/**
  * Generate dummy OPS document based on partial form data
  * Used for skeleton → dummy → real data flow
  */
@@ -13,11 +27,7 @@ export function generateDummyOPS(formData: Partial<OPSFormData>): OPSDocument {
   const incidentType = formData.incidentType || '추락';
   const location = formData.location || '작업 현장';
   const date = formData.incidentDate
-    ? new Date(formData.incidentDate).toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-      })
+    ? formatDateKorean(formData.incidentDate)
     : '날짜 미지정';
 
   return {
