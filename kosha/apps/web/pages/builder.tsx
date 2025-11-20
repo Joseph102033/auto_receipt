@@ -101,6 +101,15 @@ export default function Builder() {
         const data = await response.json();
 
         if (data.success && data.data) {
+          // Log image metadata for debugging
+          console.log('📸 OPS 데이터 수신:', {
+            hasImageMeta: !!data.data.imageMeta,
+            imageType: data.data.imageMeta?.type,
+            hasImageUrl: !!data.data.imageMeta?.url,
+            imageUrlLength: data.data.imageMeta?.url?.length,
+            imageUrlPrefix: data.data.imageMeta?.url?.substring(0, 50),
+          });
+
           // Validate with Zod schema
           const validation = validateOPSDocument(data.data);
           if (validation.success) {

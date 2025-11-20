@@ -61,15 +61,23 @@ export async function handleGenerateOPS(request: Request, env: Env): Promise<Res
 
     // Generate illustration (optional - don't fail if this fails)
     try {
+      console.log('🎨 삽화 생성 시작...');
       const illustrationUrl = await generateIllustration(input, env);
       if (illustrationUrl) {
         opsDocument.imageMeta = {
           type: 'generated',
           url: illustrationUrl,
         };
+        console.log('✅ 삽화 생성 성공:', {
+          type: opsDocument.imageMeta.type,
+          urlLength: illustrationUrl.length,
+          urlPrefix: illustrationUrl.substring(0, 50),
+        });
+      } else {
+        console.warn('⚠️ 삽화 생성 실패: URL이 null입니다. placeholder를 사용합니다.');
       }
     } catch (error) {
-      console.error('Failed to generate illustration, using placeholder:', error);
+      console.error('❌ 삽화 생성 중 오류 발생, placeholder 사용:', error);
       // Keep default placeholder
     }
 

@@ -30,7 +30,15 @@ export type Causes = z.infer<typeof CausesSchema>;
  */
 export const ImageMetaSchema = z.object({
   type: z.enum(['placeholder', 'generated']),
-  url: z.string().url().optional(),
+  // Accept both http/https URLs and data URLs (base64)
+  url: z.string().refine(
+    (val) => {
+      if (!val) return true; // optional
+      // Accept data URLs (base64 images) or regular URLs
+      return val.startsWith('data:') || val.startsWith('http://') || val.startsWith('https://');
+    },
+    { message: 'Must be a valid URL or data URL' }
+  ).optional(),
 });
 
 export type ImageMeta = z.infer<typeof ImageMetaSchema>;
