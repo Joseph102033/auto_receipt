@@ -109,7 +109,22 @@ export default function Preview({ state, data, error, activeTab, onTabChange }: 
   // Detect client-side mount to prevent hydration errors
   useEffect(() => {
     setMounted(true);
+    console.log('🔍 Preview 컴포넌트 마운트 완료');
   }, []);
+
+  // Debug: Log whenever data changes
+  useEffect(() => {
+    if (data?.imageMeta) {
+      console.log('🖼️ Preview 이미지 메타데이터:', {
+        mounted,
+        type: data.imageMeta.type,
+        hasUrl: !!data.imageMeta.url,
+        urlLength: data.imageMeta.url?.length,
+        urlPrefix: data.imageMeta.url?.substring(0, 30),
+        state,
+      });
+    }
+  }, [data, mounted, state]);
 
   // Show timer when generating (after 1 second)
   useEffect(() => {
@@ -125,19 +140,21 @@ export default function Preview({ state, data, error, activeTab, onTabChange }: 
     <div className="bg-white rounded-lg shadow-sm p-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-lg font-semibold text-gray-900">실시간 미리보기</h2>
-        {mounted && (
-          <>
-            {state === 'generating' && showDummyTimer && (
-              <span className="text-xs text-blue-600 animate-pulse">⏱️ AI 분석 중...</span>
-            )}
-            {state === 'dummy' && (
-              <span className="text-xs text-amber-600">📝 초안 (더미 데이터)</span>
-            )}
-            {state === 'ready' && (
-              <span className="text-xs text-green-600">✓ 생성 완료</span>
-            )}
-          </>
-        )}
+        <span suppressHydrationWarning>
+          {mounted && (
+            <>
+              {state === 'generating' && showDummyTimer && (
+                <span className="text-xs text-blue-600 animate-pulse">⏱️ AI 분석 중...</span>
+              )}
+              {state === 'dummy' && (
+                <span className="text-xs text-amber-600">📝 초안 (더미 데이터)</span>
+              )}
+              {state === 'ready' && (
+                <span className="text-xs text-green-600">✓ 생성 완료</span>
+              )}
+            </>
+          )}
+        </span>
       </div>
 
       {/* Idle state: Empty prompt */}
@@ -202,32 +219,48 @@ export default function Preview({ state, data, error, activeTab, onTabChange }: 
               <div>
                 <h3 className="text-base font-semibold mb-2">사고 개요</h3>
 
-                {/* Illustration */}
-                {mounted && data.imageMeta && data.imageMeta.type === 'generated' && data.imageMeta.url && (
-                  <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
-                    <img
-                      src={data.imageMeta.url}
-                      alt="재해 상황 삽화"
-                      className="w-full h-auto"
-                      onError={(e) => {
-                        console.error('이미지 로드 실패:', {
-                          url: data.imageMeta?.url?.substring(0, 100),
-                          type: data.imageMeta?.type,
-                        });
-                        e.currentTarget.style.display = 'none';
-                      }}
-                      onLoad={() => {
-                        console.log('이미지 로드 성공:', {
-                          type: data.imageMeta?.type,
-                          urlLength: data.imageMeta?.url?.length,
-                        });
-                      }}
-                    />
-                    <p className="text-xs text-gray-500 p-2 bg-gray-50">
-                      🤖 AI 생성 안전 교육 삽화
-                    </p>
-                  </div>
-                )}
+                {/* Illustration - Debug version */}
+                <div suppressHydrationWarning>
+                  {(() => {
+                    const shouldShowImage = mounted && data.imageMeta && data.imageMeta.type === 'generated' && data.imageMeta.url;
+                    console.log('🎨 이미지 표시 조건 확인:', {
+                      mounted,
+                      hasImageMeta: !!data.imageMeta,
+                      imageType: data.imageMeta?.type,
+                      hasUrl: !!data.imageMeta?.url,
+                      shouldShowImage,
+                    });
+
+                    if (shouldShowImage) {
+                      return (
+                        <div className="mb-4 rounded-lg overflow-hidden border border-gray-200">
+                          <img
+                            src={data.imageMeta!.url!}
+                            alt="재해 상황 삽화"
+                            className="w-full h-auto"
+                            onError={(e) => {
+                              console.error('❌ 이미지 로드 실패:', {
+                                url: data.imageMeta?.url?.substring(0, 100),
+                                type: data.imageMeta?.type,
+                              });
+                              e.currentTarget.style.display = 'none';
+                            }}
+                            onLoad={() => {
+                              console.log('✅ 이미지 로드 성공:', {
+                                type: data.imageMeta?.type,
+                                urlLength: data.imageMeta?.url?.length,
+                              });
+                            }}
+                          />
+                          <p className="text-xs text-gray-500 p-2 bg-gray-50">
+                            🤖 AI 생성 안전 교육 삽화
+                          </p>
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
+                </div>
 
                 {data.imageMeta && data.imageMeta.type === 'placeholder' && (
                   <div className="mb-4 rounded-lg overflow-hidden border-2 border-dashed border-gray-300 bg-gradient-to-br from-gray-50 to-gray-100 p-8 text-center">

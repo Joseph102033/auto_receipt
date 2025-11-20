@@ -100,6 +100,12 @@ export default function Builder() {
 
         const data = await response.json();
 
+        console.log('📡 API 응답 전체:', {
+          success: data.success,
+          hasData: !!data.data,
+          dataKeys: data.data ? Object.keys(data.data) : [],
+        });
+
         if (data.success && data.data) {
           // Log image metadata for debugging
           console.log('📸 OPS 데이터 수신:', {
@@ -108,6 +114,7 @@ export default function Builder() {
             hasImageUrl: !!data.data.imageMeta?.url,
             imageUrlLength: data.data.imageMeta?.url?.length,
             imageUrlPrefix: data.data.imageMeta?.url?.substring(0, 50),
+            fullImageMeta: data.data.imageMeta,
           });
 
           // Validate with Zod schema
